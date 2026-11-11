@@ -1,7 +1,7 @@
 # HackFest – Plateforme de hackathons étudiants
 
 **Projet Web · Objectif 3 : développement et intégration des fonctionnalités principales**
-Groupe : _GroupeX_ (à compléter : noms des membres)
+Projet : **HackFest** · Membres : **Nourchen Benhdia**, **Lina Sidhom**
 
 HackFest réunit les hackathons étudiants de Tunisie sur une seule plateforme. Un visiteur peut **consulter et filtrer** les hackathons ; une fois connecté, il peut **s’inscrire** (en solo ou en équipe), retrouver **ses événements à venir** et **publier ses propres hackathons**.
 
