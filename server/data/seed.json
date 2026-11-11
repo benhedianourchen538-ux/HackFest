@@ -2,6 +2,52 @@
   "_note": "Vrais hackathons. Seules les informations confirmées sont renseignées : null = non communiqué (le site affiche « À confirmer »).",
   "hackathons": [
     {
+      "id": "h-actinspace-tunisia-2026",
+      "titre": "ActInSpace Tunisia 2026",
+      "description": "Édition tunisienne du hackathon international ActInSpace, organisée simultanément dans plus de 40 pays. Pendant 24 heures, des équipes pluridisciplinaires (étudiants, chercheurs, ingénieurs, développeurs, entrepreneurs) relèvent des défis proposés par des partenaires comme Airbus, Thales Alenia Space et le CNES, sur le thème « l'innovation spatiale au service du développement durable ». L'équipe tunisienne gagnante est qualifiée pour la finale internationale à Bordeaux.",
+      "organisateur": {
+        "nom": "AGEOS (African Association for Geospatial Development)",
+        "type": "organisation"
+      },
+      "domaine": "environnement",
+      "region": "Tunis",
+      "format": "presentiel",
+      "lieu": "Cité des Sciences à Tunis",
+      "dateDebut": "2026-01-30",
+      "dateFin": "2026-01-31",
+      "dateLimite": null,
+      "places": null,
+      "tailleEquipeMax": null,
+      "prix": [],
+      "programme": [],
+      "reglement": "",
+      "lien": "https://commercialisation.esa.int/event/actinspace-2026/",
+      "source": "https://www.espacemanager.com/actinspace-tunisia-2026-les-30-et-31-janvier-la-cite-des-sciences-tunis.html"
+    },
+    {
+      "id": "h-marateck-2026",
+      "titre": "Marateck Hackathon 2026",
+      "description": "1re édition du hackathon Marateck : 48 heures de code à ESPRIT pour concevoir des solutions intelligentes, innovantes et accessibles répondant aux besoins réels d'associations et améliorant le quotidien des personnes à mobilité réduite. Ouvert à tous les étudiants en Tunisie.",
+      "organisateur": {
+        "nom": "ESPRIT",
+        "type": "universite"
+      },
+      "domaine": "impact-social",
+      "region": "Ariana",
+      "format": "presentiel",
+      "lieu": "ESPRIT, El Ghazala (Ariana)",
+      "dateDebut": "2026-02-06",
+      "dateFin": "2026-02-08",
+      "dateLimite": null,
+      "places": null,
+      "tailleEquipeMax": null,
+      "prix": [],
+      "programme": [],
+      "reglement": "Ouvert à tous les étudiants en Tunisie.",
+      "lien": "https://www.esprit.tn/marateck-hackathon-2026-48h-dinnovation-a-esprit/",
+      "source": "https://www.esprit.tn/marateck-hackathon-2026-48h-dinnovation-a-esprit/"
+    },
+    {
       "id": "h-hack-for-hope-2026",
       "titre": "Hack for Hope",
       "description": "Hackathon consacré à l'intelligence artificielle, organisé par le club SOS SUP'COM.",
@@ -15,9 +61,9 @@
       "lieu": "SUP'COM, Cité technologique des communications, El Ghazala (Ariana)",
       "dateDebut": "2026-02-13",
       "dateFin": "2026-02-13",
-      "dateLimite": null,
-      "places": null,
-      "tailleEquipeMax": 4,
+      "dateLimite": "2026-02-11",
+      "places": 50,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
@@ -40,12 +86,58 @@
       "dateFin": "2026-03-15",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
       "lien": null,
       "source": null
+    },
+    {
+      "id": "h-smart2gether-2026",
+      "titre": "Smart2Gether Tunisia–Algeria",
+      "description": "Hackathon tuniso-algérien réunissant 50 étudiants (25 Tunisiens et 25 Algériens) en équipes mixtes et pluridisciplinaires, autour de l'innovation numérique au service de solutions durables et inclusives face aux défis économiques et territoriaux. Une phase de pré-incubation encadrée par des experts a précédé la finale de 48 heures en continu.",
+      "organisateur": {
+        "nom": "Université de Tunis",
+        "type": "universite"
+      },
+      "domaine": "impact-social",
+      "region": "Tunis",
+      "format": "presentiel",
+      "lieu": "Hôtel Concorde, Les Berges du Lac 1, Tunis",
+      "dateDebut": "2026-04-09",
+      "dateFin": "2026-04-10",
+      "dateLimite": null,
+      "places": 50,
+      "tailleEquipeMax": null,
+      "prix": [],
+      "programme": [],
+      "reglement": "Équipes mixtes tuniso-algériennes et pluridisciplinaires.",
+      "lien": "https://utunis.rnu.tn/en/article/768/smart2gether-tunisia-algeria",
+      "source": "https://utunis.rnu.tn/en/article/768/smart2gether-tunisia-algeria"
+    },
+    {
+      "id": "h-hack4ucar-2026",
+      "titre": "HACK4UCAR – National University Hackathon",
+      "description": "Hackathon national de 24 heures de l'Université de Carthage, en partenariat avec l'ACM Student Chapter ENSTAB et Students For Earth ISSTE. Défi : comment l'IA peut-elle digitaliser la gouvernance universitaire tout en optimisant la gestion environnementale ? Deux parcours : digitalisation et centralisation (assistants IA, automatisation, données), et durabilité (énergie, eau, déchets, score GreenMetric).",
+      "organisateur": {
+        "nom": "Université de Carthage",
+        "type": "universite"
+      },
+      "domaine": "environnement",
+      "region": "Ben Arous",
+      "format": "presentiel",
+      "lieu": "Technopole de Borj Cédria",
+      "dateDebut": "2026-04-25",
+      "dateFin": "2026-04-26",
+      "dateLimite": null,
+      "places": null,
+      "tailleEquipeMax": 5,
+      "prix": [],
+      "programme": [],
+      "reglement": "Équipes de 3 à 5 participants aux profils multidisciplinaires.",
+      "lien": "https://ucar.rnu.tn/hack4ucar-national-university-hackathon/",
+      "source": "https://ucar.rnu.tn/hack4ucar-national-university-hackathon/"
     },
     {
       "id": "h-hack-the-harvest-2026",
@@ -63,12 +155,44 @@
       "dateFin": "2026-05-03",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
       "lien": null,
       "source": null
+    },
+    {
+      "id": "h-mindhack-2026",
+      "titre": "MIND-HACK 1.0",
+      "description": "Hackathon de 22 heures propulsé par l'IA et consacré à la santé mentale. Étudiants, ingénieurs, data scientists et professionnels de santé construisent des solutions technologiques à des problèmes cliniques. Co-organisé par les chapitres IEEE Computer Society et IEEE EMBS de l'ISTMT.",
+      "organisateur": {
+        "nom": "IEEE ISTMT Student Branch",
+        "type": "club"
+      },
+      "domaine": "sante",
+      "region": "Tunis",
+      "format": "presentiel",
+      "lieu": "THE DOT, Tunis",
+      "dateDebut": "2026-05-22",
+      "dateFin": "2026-05-23",
+      "dateLimite": null,
+      "places": null,
+      "tailleEquipeMax": null,
+      "prix": [],
+      "programme": [
+        {
+          "moment": "22 mai, 15h00",
+          "titre": "Lancement du hackathon"
+        },
+        {
+          "moment": "23 mai",
+          "titre": "Évaluation du jury et cérémonie de clôture"
+        }
+      ],
+      "reglement": "",
+      "lien": "https://ieee.tn/event/mind-hack-1-0/",
+      "source": "https://ieee.tn/event/mind-hack-1-0/"
     },
     {
       "id": "h-indabax-tunisia-2026",
@@ -86,7 +210,7 @@
       "dateFin": "2026-09-26",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
@@ -109,7 +233,7 @@
       "dateFin": "2026-11-01",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
@@ -144,6 +268,38 @@
       "source": "https://www.thd.tn/green-hackathon-un-defi-de-creation-de-jeux-mobiles-prevu-les-21-et-22-novembre-a-el-ghazala/"
     },
     {
+      "id": "h-securinets-ctf-finale-2026",
+      "titre": "Securinets CTF 2026 – Finale",
+      "description": "Finale sur place de la plus grande compétition CTF de Tunisie, organisée par Securinets INSAT. Les qualifications en ligne (format Jeopardy, 36 heures, les 17 et 18 octobre 2026) couvraient Web, Pwn, Reverse, Crypto, Forensics, Mobile, Hardware, OSINT et Misc. Les 10 meilleures équipes internationales et les 10 meilleures équipes de la région MENA sont qualifiées pour la finale.",
+      "organisateur": {
+        "nom": "Securinets INSAT",
+        "type": "club"
+      },
+      "domaine": "cybersecurite",
+      "region": "Tunis",
+      "format": "presentiel",
+      "lieu": "INSAT, Centre Urbain Nord, Tunis",
+      "dateDebut": "2026-12-19",
+      "dateFin": "2026-12-20",
+      "dateLimite": "2026-10-18",
+      "places": null,
+      "tailleEquipeMax": null,
+      "prix": [],
+      "programme": [
+        {
+          "moment": "17–18 oct. 2026",
+          "titre": "Qualifications en ligne (Jeopardy, 36 h)"
+        },
+        {
+          "moment": "19–20 déc. 2026",
+          "titre": "Finale sur place à l'INSAT"
+        }
+      ],
+      "reglement": "Accès à la finale uniquement par les qualifications : top 10 international et top 10 MENA. Les deux meilleures équipes internationales ont le vol et l'hébergement pris en charge.",
+      "lien": "https://ctf.securinets.tn/",
+      "source": "https://ctftime.org/event/3364/"
+    },
+    {
       "id": "h-goat-2-2027",
       "titre": "GOAT 2.0",
       "description": "Deuxième édition du hackathon GOAT, organisée par le club MLS à SUP'COM et consacrée à l'intelligence artificielle.",
@@ -159,7 +315,7 @@
       "dateFin": "2027-01-30",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
@@ -179,10 +335,10 @@
       "format": "presentiel",
       "lieu": "SUP'COM, Cité technologique des communications, El Ghazala (Ariana)",
       "dateDebut": "2027-02-02",
-      "dateFin": "2027-02-02",
+      "dateFin": "2027-02-03",
       "dateLimite": null,
       "places": null,
-      "tailleEquipeMax": 4,
+      "tailleEquipeMax": null,
       "prix": [],
       "programme": [],
       "reglement": "",
