@@ -176,7 +176,8 @@ router.post(
       if (!membres.length) {
         return res.status(400).json({ message: 'Code d’équipe introuvable pour ce hackathon.', errors: { codeEquipe: 'Code introuvable.' } });
       }
-      if (membres.length >= (hackathon.tailleEquipeMax || 4)) {
+      // tailleEquipeMax null = non communiquée : pas de limite imposée
+      if (hackathon.tailleEquipeMax && membres.length >= hackathon.tailleEquipeMax) {
         return res.status(400).json({ message: 'Cette équipe est complète.', errors: { codeEquipe: 'Équipe complète.' } });
       }
       equipe = { nom: membres[0].equipe_nom, code };

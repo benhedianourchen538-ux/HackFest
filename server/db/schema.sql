@@ -24,7 +24,7 @@ create table if not exists hackathons (
   date_fin          date not null,
   date_limite       date,                  -- null : non communiquée
   places            integer check (places > 0), -- null : non communiqué
-  taille_equipe_max integer not null default 4 check (taille_equipe_max > 0),
+  taille_equipe_max integer check (taille_equipe_max > 0), -- null : non communiquée
   prix              jsonb not null default '[]'::jsonb,
   programme         jsonb not null default '[]'::jsonb,
   reglement         text not null default '',
@@ -47,6 +47,10 @@ create table if not exists inscriptions (
   cree_le        timestamptz not null default now(),
   unique (hackathon_id, utilisateur_id)   -- pas de double inscription
 );
+
+-- Mise à jour des bases créées avec une version précédente de ce schéma
+alter table hackathons alter column taille_equipe_max drop not null;
+alter table hackathons alter column taille_equipe_max drop default;
 
 create index if not exists inscriptions_equipe_idx on inscriptions (hackathon_id, equipe_code);
 create index if not exists hackathons_cree_par_idx on hackathons (cree_par);

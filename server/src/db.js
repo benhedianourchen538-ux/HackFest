@@ -155,7 +155,7 @@ export async function insererHackathon(h, creePar = null, { majSiExiste = false 
       h.dateFin,
       h.dateLimite ?? null,
       h.places ?? null,
-      h.tailleEquipeMax ?? 4,
+      h.tailleEquipeMax ?? null,
       JSON.stringify(h.prix ?? []),
       JSON.stringify(h.programme ?? []),
       h.reglement ?? '',

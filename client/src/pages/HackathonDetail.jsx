@@ -188,7 +188,7 @@ export default function HackathonDetail() {
             <section id="reglement" className="card scroll-mt-32 p-6">
               <h2 className="text-xl font-semibold">Règlement</h2>
               <p className="mt-3 text-slate-700">{h.reglement || 'Aucun règlement particulier.'}</p>
-              <p className="mt-2 text-sm text-slate-500">Taille maximale d’une équipe : {h.tailleEquipeMax || 4} personnes.</p>
+              <p className="mt-2 text-sm text-slate-500">Taille maximale d’une équipe : {h.tailleEquipeMax ? `${h.tailleEquipeMax} personnes` : A_CONFIRMER.toLowerCase()}.</p>
             </section>
           </div>
 

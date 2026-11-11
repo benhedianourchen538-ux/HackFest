@@ -219,7 +219,7 @@ export default function Inscription() {
               </Field>
             )}
             {form.mode === 'rejoindre' && (
-              <Field label="Code de l’équipe" id="codeEquipe" error={errors.codeEquipe} hint={`Équipes de ${hackathon.tailleEquipeMax || 4} personnes maximum.`}>
+              <Field label="Code de l’équipe" id="codeEquipe" error={errors.codeEquipe} hint={hackathon.tailleEquipeMax ? `Équipes de ${hackathon.tailleEquipeMax} personnes maximum.` : undefined}>
                 <input id="codeEquipe" name="codeEquipe" className="input uppercase" placeholder="HF-AB12C" value={form.codeEquipe} onChange={update} />
               </Field>
             )}
