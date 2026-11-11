@@ -4,10 +4,10 @@
     {
       "id": "h-hack-for-hope-2026",
       "titre": "Hack for Hope",
-      "description": "Hackathon consacré à l'intelligence artificielle, organisé à SUP'COM.",
+      "description": "Hackathon consacré à l'intelligence artificielle, organisé par le club SOS SUP'COM.",
       "organisateur": {
-        "nom": "SUP'COM",
-        "type": "universite"
+        "nom": "SOS SUP'COM",
+        "type": "club"
       },
       "domaine": "tech-ia",
       "region": "Ariana",
@@ -27,10 +27,10 @@
     {
       "id": "h-codex-junior-2026",
       "titre": "Codex Junior",
-      "description": "Compétition de programmation compétitive (CP) organisée à SUP'COM.",
+      "description": "Compétition de programmation compétitive (CP) organisée par SUP'COM Junior Entreprise.",
       "organisateur": {
-        "nom": "SUP'COM",
-        "type": "universite"
+        "nom": "SUP'COM Junior Entreprise",
+        "type": "club"
       },
       "domaine": "programmation",
       "region": "Ariana",
@@ -146,10 +146,10 @@
     {
       "id": "h-goat-2-2027",
       "titre": "GOAT 2.0",
-      "description": "Deuxième édition du hackathon GOAT à SUP'COM, consacrée à l'intelligence artificielle.",
+      "description": "Deuxième édition du hackathon GOAT, organisée par le club MLS à SUP'COM et consacrée à l'intelligence artificielle.",
       "organisateur": {
-        "nom": "SUP'COM",
-        "type": "universite"
+        "nom": "Club MLS",
+        "type": "club"
       },
       "domaine": "tech-ia",
       "region": "Ariana",
@@ -169,10 +169,10 @@
     {
       "id": "h-vectors-in-orbits-2-2027",
       "titre": "Vectors in Orbits 2.0",
-      "description": "Deuxième édition du hackathon Vectors in Orbits à SUP'COM, consacrée à l'intelligence artificielle.",
+      "description": "Deuxième édition du hackathon Vectors in Orbits, organisée par le club GDG à SUP'COM et consacrée à l'intelligence artificielle.",
       "organisateur": {
-        "nom": "SUP'COM",
-        "type": "universite"
+        "nom": "Club GDG",
+        "type": "club"
       },
       "domaine": "tech-ia",
       "region": "Ariana",
