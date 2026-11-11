@@ -11,6 +11,12 @@ export function parseDate(value) {
   return new Date(value);
 }
 
+/** Date du jour au format "AAAA-MM-JJ" en heure locale (toISOString() donnerait la date UTC) */
+export function aujourdhui() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function formatDate(value) {
   const date = parseDate(value);
   return date ? dateFormatter.format(date) : '';
