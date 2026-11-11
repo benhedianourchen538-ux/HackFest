@@ -27,14 +27,18 @@ function normalize(text) {
     .replace(/[\u0300-\u036f]/g, ''); // retire les accents (é -> e)
 }
 
-/** Ajoute les champs calculés (statut, inscrits, places restantes) */
-export function enrich(hackathon, inscriptions, now = new Date()) {
-  const inscrits = inscriptions.filter((i) => i.hackathonId === hackathon.id).length;
+/**
+ * Ajoute les champs calculés (statut, places restantes).
+ * hackathon.inscrits est déjà compté par la requête SQL.
+ * places = null (non communiqué) -> placesRestantes = null.
+ */
+export function enrich(hackathon, now = new Date()) {
+  const inscrits = hackathon.inscrits ?? 0;
   return {
     ...hackathon,
     statut: getStatut(hackathon, now),
     inscrits,
-    placesRestantes: Math.max(hackathon.places - inscrits, 0),
+    placesRestantes: hackathon.places == null ? null : Math.max(hackathon.places - inscrits, 0),
   };
 }
 
@@ -65,7 +69,8 @@ export function filterHackathons(list, query = {}) {
 
   const tri = query.tri || 'date';
   result = [...result].sort((a, b) => {
-    if (tri === 'places') return b.placesRestantes - a.placesRestantes;
+    // Places non communiquées (null) en dernier
+    if (tri === 'places') return (b.placesRestantes ?? -1) - (a.placesRestantes ?? -1);
     if (tri === 'recent') return new Date(b.createdAt) - new Date(a.createdAt);
     // Par défaut : les hackathons à venir/en cours d'abord, du plus proche au plus lointain
     const ordre = { 'en-cours': 0, 'a-venir': 1, termine: 2 };

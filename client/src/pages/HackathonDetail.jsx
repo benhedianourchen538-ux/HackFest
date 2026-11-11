@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Building2, CalendarClock, CalendarDays, CircleCheck, Globe, Lock, MapPin, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, Building2, CalendarClock, CalendarDays, CircleCheck, ExternalLink, Globe, Lock, MapPin, Trophy, Users } from 'lucide-react';
 import Cover from '../components/Cover';
 import { ErrorMessage, Spinner } from '../components/ui';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FORMATS, TYPES_ORGANISATEUR, domaineOf, labelOf, statutOf } from '../data/constants';
-import { formatDate, formatPeriode, inscriptionsOuvertes, joursAvant } from '../utils/format';
+import { A_CONFIRMER, formatDate, formatPeriode, inscriptionsOuvertes, joursAvant } from '../utils/format';
 
 const SECTIONS = [
   { id: 'presentation', label: 'Présentation' },
@@ -34,7 +34,7 @@ function ActionInscription({ hackathon, dejaInscrit, user }) {
         ? 'Hackathon terminé'
         : hackathon.statut === 'en-cours'
           ? 'Hackathon en cours'
-          : hackathon.placesRestantes <= 0
+          : hackathon.placesRestantes !== null && hackathon.placesRestantes <= 0
             ? 'Complet'
             : 'Inscriptions fermées';
     return (
@@ -106,8 +106,9 @@ export default function HackathonDetail() {
   const h = hackathon;
   const domaine = domaineOf(h.domaine);
   const statut = statutOf(h.statut);
-  const remplissage = Math.min(100, Math.round((h.inscrits / h.places) * 100));
-  const jours = joursAvant(h.dateLimite);
+  // places / dateLimite à null : information non communiquée
+  const remplissage = h.places ? Math.min(100, Math.round((h.inscrits / h.places) * 100)) : 0;
+  const jours = h.dateLimite ? joursAvant(h.dateLimite) : null;
 
   return (
     <article>
@@ -165,7 +166,7 @@ export default function HackathonDetail() {
                   ))}
                 </ol>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">Le programme sera bientôt communiqué.</p>
+                <p className="mt-3 text-sm text-slate-500">Programme non communiqué pour l’instant.</p>
               )}
             </section>
 
@@ -180,7 +181,7 @@ export default function HackathonDetail() {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-3 text-sm text-slate-500">Les prix seront annoncés prochainement.</p>
+                <p className="mt-3 text-sm text-slate-500">Prix non communiqués pour l’instant.</p>
               )}
             </section>
 
@@ -213,28 +214,51 @@ export default function HackathonDetail() {
                   <CalendarClock className="h-5 w-5 text-tech" aria-hidden="true" />
                   <span>
                     <span className="block font-medium text-navy">Inscriptions jusqu’au</span>
-                    {formatDate(h.dateLimite)}
-                    {h.statut === 'a-venir' && jours >= 0 && <span className="text-sup"> · J-{jours}</span>}
+                    {h.dateLimite ? formatDate(h.dateLimite) : A_CONFIRMER}
+                    {h.statut === 'a-venir' && jours !== null && jours >= 0 && <span className="text-sup"> · J-{jours}</span>}
                   </span>
                 </li>
               </ul>
 
-              <div>
-                <div className="flex items-center justify-between text-sm">
+              {h.places ? (
+                <div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 font-medium text-navy">
+                      <Users className="h-4 w-4 text-tech" aria-hidden="true" /> Places
+                    </span>
+                    <span className="text-slate-600">
+                      {h.inscrits} / {h.places}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-glace" role="progressbar" aria-valuenow={remplissage} aria-valuemin={0} aria-valuemax={100} aria-label="Taux de remplissage">
+                    <div className="h-full rounded-full bg-tech" style={{ width: `${remplissage}%` }} />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{h.placesRestantes} places restantes</p>
+                </div>
+              ) : (
+                <p className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 font-medium text-navy">
                     <Users className="h-4 w-4 text-tech" aria-hidden="true" /> Places
                   </span>
-                  <span className="text-slate-600">
-                    {h.inscrits} / {h.places}
-                  </span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-glace" role="progressbar" aria-valuenow={remplissage} aria-valuemin={0} aria-valuemax={100} aria-label="Taux de remplissage">
-                  <div className="h-full rounded-full bg-tech" style={{ width: `${remplissage}%` }} />
-                </div>
-                <p className="mt-1 text-xs text-slate-500">{h.placesRestantes} places restantes</p>
-              </div>
+                  <span className="text-slate-600">{A_CONFIRMER}</span>
+                </p>
+              )}
 
               <ActionInscription hackathon={h} dejaInscrit={dejaInscrit} user={user} />
+
+              {h.lien && (
+                <a href={h.lien} target="_blank" rel="noopener noreferrer" className="btn btn-outline w-full">
+                  Site officiel <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              )}
+              {h.source && (
+                <p className="text-center text-xs text-slate-500">
+                  Source :{' '}
+                  <a href={h.source} target="_blank" rel="noopener noreferrer" className="text-tech underline-offset-2 hover:underline">
+                    {new URL(h.source).hostname.replace(/^www\./, '')}
+                  </a>
+                </p>
+              )}
             </div>
           </aside>
         </div>

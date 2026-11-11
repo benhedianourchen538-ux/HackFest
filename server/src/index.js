@@ -1,6 +1,7 @@
+import './env.js';
 import express from 'express';
 import cors from 'cors';
-import { loadDb } from './db.js';
+import { initialiserDb } from './db.js';
 import authRoutes from './routes/auth.js';
 import hackathonRoutes from './routes/hackathons.js';
 import inscriptionRoutes from './routes/inscriptions.js';
@@ -9,8 +10,6 @@ import { DOMAINES, FORMATS, REGIONS, STATUTS, TYPES_ORGANISATEUR } from './const
 
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
-
-loadDb();
 
 const app = express();
 app.use(cors({ origin: CLIENT_URL }));
@@ -34,6 +33,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Erreur serveur.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`API HackFest prête sur http://localhost:${PORT}/api`);
-});
+try {
+  const base = await initialiserDb();
+  app.listen(PORT, () => {
+    console.log(`API HackFest prête sur http://localhost:${PORT}/api (base : ${base})`);
+  });
+} catch (err) {
+  console.error('Impossible de se connecter à la base de données :', err.message);
+  if (process.env.DATABASE_URL) console.error('Vérifie DATABASE_URL dans server/.env (mot de passe, adresse du "Session pooler").');
+  process.exit(1);
+}

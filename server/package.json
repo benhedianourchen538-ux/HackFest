@@ -5,17 +5,21 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node --watch src/index.js",
+    "dev": "node --watch-path=src --watch-preserve-output src/index.js",
     "start": "node src/index.js",
+    "sync-seed": "node src/syncSeed.js",
     "reset-db": "node src/resetDb.js"
   },
   "engines": {
     "node": ">=18.18"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
   }
 }

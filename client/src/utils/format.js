@@ -40,6 +40,12 @@ export function joursAvant(value) {
   return Math.round((parseDate(value) - today) / 86400000);
 }
 
+/** dateLimite ou places à null = non communiqué : ce critère ne bloque pas l'inscription */
 export function inscriptionsOuvertes(hackathon) {
-  return hackathon.statut === 'a-venir' && joursAvant(hackathon.dateLimite) >= 0 && hackathon.placesRestantes > 0;
+  const limiteOk = !hackathon.dateLimite || joursAvant(hackathon.dateLimite) >= 0;
+  const placesOk = hackathon.placesRestantes == null || hackathon.placesRestantes > 0;
+  return hackathon.statut === 'a-venir' && limiteOk && placesOk;
 }
+
+/** Texte affiché quand une information n'a pas encore été communiquée */
+export const A_CONFIRMER = 'À confirmer';

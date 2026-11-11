@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, CalendarDays, MapPin, Users } from 'lucide-react';
 import Cover from './Cover';
 import { domaineOf, labelOf, statutOf, TYPES_ORGANISATEUR } from '../data/constants';
-import { formatPeriode } from '../utils/format';
+import { A_CONFIRMER, formatPeriode } from '../utils/format';
 
 export default function HackathonCard({ hackathon, inscrit = false }) {
   const domaine = domaineOf(hackathon.domaine);
@@ -21,10 +21,10 @@ export default function HackathonCard({ hackathon, inscrit = false }) {
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <p className="flex items-center gap-1.5 text-xs text-slate-500">
-          <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className="truncate">{hackathon.organisateur.nom}</span>
+          <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate" title={hackathon.organisateur.nom}>{hackathon.organisateur.nom}</span>
           <span aria-hidden="true">·</span>
-          <span>{labelOf(TYPES_ORGANISATEUR, hackathon.organisateur.type)}</span>
+          <span className="shrink-0">{labelOf(TYPES_ORGANISATEUR, hackathon.organisateur.type)}</span>
         </p>
 
         <h3 className="text-lg leading-snug font-semibold">
@@ -44,7 +44,11 @@ export default function HackathonCard({ hackathon, inscrit = false }) {
           </li>
           <li className="flex items-center gap-2">
             <Users className="h-4 w-4 text-tech" aria-hidden="true" />
-            {hackathon.statut === 'termine' ? `${hackathon.inscrits} participants` : `${hackathon.placesRestantes} places restantes`}
+            {hackathon.statut === 'termine'
+              ? 'Événement terminé'
+              : hackathon.placesRestantes == null
+                ? `Places : ${A_CONFIRMER.toLowerCase()}`
+                : `${hackathon.placesRestantes} places restantes`}
           </li>
         </ul>
 
