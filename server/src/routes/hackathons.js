@@ -69,6 +69,10 @@ function validateHackathon(body) {
   if (!FORMATS.includes(b.format)) errors.format = 'Format invalide.';
   if (!REGIONS.includes(b.region)) errors.region = 'Région invalide.';
   if (!b.lieu) errors.lieu = 'Lieu requis.';
+  // Les dates doivent être au format "AAAA-MM-JJ" (valeur d'un <input type="date">)
+  for (const champ of ['dateDebut', 'dateFin', 'dateLimite']) {
+    if (b[champ] && !/^d{4}-d{2}-d{2}$/.test(b[champ])) errors[champ] = 'Date invalide (format AAAA-MM-JJ).';
+  }
   if (!b.dateDebut) errors.dateDebut = 'Date de début requise.';
   if (!b.dateFin) errors.dateFin = 'Date de fin requise.';
   if (b.dateDebut && b.dateFin && new Date(b.dateFin) < new Date(b.dateDebut)) errors.dateFin = 'La fin doit être après le début.';

@@ -6,7 +6,7 @@ import { Field, PageHeader, Stepper } from '../components/ui';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { DOMAINES, FORMATS, REGIONS, TYPES_ORGANISATEUR, labelOf } from '../data/constants';
-import { formatDate, formatPeriode } from '../utils/format';
+import { aujourdhui, formatDate, formatPeriode } from '../utils/format';
 
 const ETAPES = ['Infos', 'Dates & lieu', 'Programme & prix', 'Règlement', 'Aperçu'];
 const BROUILLON_KEY = 'hackfest_brouillon';
@@ -76,7 +76,7 @@ export default function Publier() {
 
   const validerEtape = (n) => {
     const errs = {};
-    const today = new Date().toISOString().slice(0, 10);
+    const today = aujourdhui();
     if (n === 0) {
       if (form.titre.trim().length < 5) errs.titre = 'Titre trop court (5 caractères min.).';
       if (form.description.trim().length < 30) errs.description = `Encore ${30 - form.description.trim().length} caractères minimum.`;
@@ -89,6 +89,7 @@ export default function Publier() {
       if (!form.dateFin) errs.dateFin = 'Date requise.';
       else if (form.dateDebut && form.dateFin < form.dateDebut) errs.dateFin = 'La fin doit être après le début.';
       if (!form.dateLimite) errs.dateLimite = 'Date requise.';
+      else if (form.dateLimite < today) errs.dateLimite = 'La date limite est déjà passée.';
       else if (form.dateDebut && form.dateLimite > form.dateDebut) errs.dateLimite = 'Doit être avant le début.';
     }
     if (n === 3) {
@@ -225,7 +226,7 @@ export default function Publier() {
                   <input id="dateFin" name="dateFin" type="date" className="input" value={form.dateFin} onChange={update} min={form.dateDebut || undefined} />
                 </Field>
                 <Field label="Limite d’inscription" id="dateLimite" error={errors.dateLimite}>
-                  <input id="dateLimite" name="dateLimite" type="date" className="input" value={form.dateLimite} onChange={update} max={form.dateDebut || undefined} />
+                  <input id="dateLimite" name="dateLimite" type="date" className="input" value={form.dateLimite} onChange={update} min={aujourdhui()} max={form.dateDebut || undefined} />
                 </Field>
               </div>
             </>

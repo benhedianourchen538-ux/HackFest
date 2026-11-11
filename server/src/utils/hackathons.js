@@ -2,9 +2,10 @@
 
 /** Statut calculé à partir des dates : a-venir | en-cours | termine */
 export function getStatut(hackathon, now = new Date()) {
-  const debut = new Date(hackathon.dateDebut);
-  const fin = new Date(hackathon.dateFin);
-  fin.setHours(23, 59, 59, 999);
+  // "AAAA-MM-JJT00:00:00" (sans "Z") est lu en heure locale, comme côté client.
+  // new Date("AAAA-MM-JJ") seul serait lu en UTC : le statut changerait à 1h du matin en Tunisie.
+  const debut = new Date(`${hackathon.dateDebut}T00:00:00`);
+  const fin = new Date(`${hackathon.dateFin}T23:59:59.999`);
   if (now < debut) return 'a-venir';
   if (now <= fin) return 'en-cours';
   return 'termine';
@@ -23,7 +24,7 @@ function normalize(text) {
   return String(text || '')
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+    .replace(/[\u0300-\u036f]/g, ''); // retire les accents (é -> e)
 }
 
 /** Ajoute les champs calculés (statut, inscrits, places restantes) */

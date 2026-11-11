@@ -15,14 +15,17 @@ function exporterCsv(hackathon, inscrits) {
     ...inscrits.map((i) => [i.nom, i.email, i.universite || '', MODES[i.mode], i.equipe?.nom || '', i.equipe?.code || '', formatDate(i.createdAt)]),
   ];
   const csv = lignes.map((l) => l.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
-  // ﻿ : pour qu'Excel affiche correctement les accents
-  const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8' });
+  // \uFEFF (BOM) : pour qu'Excel affiche correctement les accents
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `inscrits-${hackathon.titre.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  // On libère l'URL un peu plus tard : la libérer tout de suite peut annuler le téléchargement (Firefox, Safari)
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function Publication({ hackathon, onSupprimer }) {

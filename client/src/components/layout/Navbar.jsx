@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LayoutList, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -64,9 +64,11 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    logout();
     notify('Tu es déconnecté(e). À bientôt !', 'info');
     navigate('/');
+    // React Router (v7_startTransition) fait la navigation dans une "transition" : on y place aussi la déconnexion,
+    // sinon la page protégée affichée redirigerait d'abord vers /connexion.
+    startTransition(() => logout());
   };
 
   const linkClass = ({ isActive }) =>

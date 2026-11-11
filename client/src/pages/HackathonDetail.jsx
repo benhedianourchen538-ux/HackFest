@@ -29,7 +29,14 @@ function ActionInscription({ hackathon, dejaInscrit, user }) {
     );
   }
   if (!inscriptionsOuvertes(hackathon)) {
-    const raison = hackathon.statut === 'termine' ? 'Hackathon terminé' : hackathon.placesRestantes <= 0 ? 'Complet' : 'Inscriptions fermées';
+    const raison =
+      hackathon.statut === 'termine'
+        ? 'Hackathon terminé'
+        : hackathon.statut === 'en-cours'
+          ? 'Hackathon en cours'
+          : hackathon.placesRestantes <= 0
+            ? 'Complet'
+            : 'Inscriptions fermées';
     return (
       <button type="button" className="btn w-full bg-slate-200 text-slate-500" disabled>
         {raison}
