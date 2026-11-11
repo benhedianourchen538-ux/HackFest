@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+.DS_Store
+# Base générée au premier lancement de l'API (recréée depuis seed.json)
+server/data/db.json

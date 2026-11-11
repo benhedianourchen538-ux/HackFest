@@ -1,0 +1,21 @@
+{
+  "name": "hackfest-server",
+  "version": "1.0.0",
+  "description": "API REST minimale de HackFest (Node.js + Express)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "reset-db": "node src/resetDb.js"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
