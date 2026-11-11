@@ -1,4 +1,4 @@
-import { Cpu, GraduationCap, HandHeart, HeartPulse, Leaf, ShieldCheck, Wallet } from 'lucide-react';
+import { Code, Cpu, GraduationCap, HandHeart, HeartPulse, Leaf, ShieldCheck, Wallet } from 'lucide-react';
 
 // Visuel généré (pas d'image à télécharger = chargement rapide)
 const ICONS = {
@@ -9,6 +9,7 @@ const ICONS = {
   education: GraduationCap,
   'impact-social': HandHeart,
   cybersecurite: ShieldCheck,
+  programmation: Code,
 };
 
 export default function Cover({ domaine, className = '', size = 'md' }) {

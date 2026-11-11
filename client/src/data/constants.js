@@ -14,6 +14,7 @@ export const DOMAINES = [
   { value: 'education', label: 'Éducation', color: 'bg-violet-50 text-violet-700' },
   { value: 'impact-social', label: 'Impact social', color: 'bg-orange-50 text-orange-700' },
   { value: 'cybersecurite', label: 'Cybersécurité', color: 'bg-slate-100 text-slate-700' },
+  { value: 'programmation', label: 'Programmation compétitive', color: 'bg-glace text-navy' },
 ];
 
 export const REGIONS = [

@@ -2,5 +2,7 @@ node_modules/
 dist/
 .env
 .DS_Store
-# Base générée au premier lancement de l'API (recréée depuis seed.json)
+# Base PostgreSQL locale (PGlite), utilisée quand DATABASE_URL n'est pas défini
+server/data/pglite/
+# Ancienne base JSON (avant le passage à PostgreSQL)
 server/data/db.json

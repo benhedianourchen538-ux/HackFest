@@ -11,6 +11,7 @@ export const DOMAINES = [
   'education',
   'impact-social',
   'cybersecurite',
+  'programmation',
 ];
 
 export const REGIONS = [

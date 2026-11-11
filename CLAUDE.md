@@ -1,6 +1,15 @@
 # HackFest : règles du projet
 
-Plateforme de hackathons étudiants en Tunisie. Frontend React 18 + Vite + Tailwind CSS 4 (`client/`), API Node.js + Express avec une base JSON (`server/`). Le détail est dans le [README.md](README.md).
+Plateforme de hackathons étudiants en Tunisie. Frontend React 18 + Vite + Tailwind CSS 4 (`client/`), API Node.js + Express avec PostgreSQL (`server/`) : Supabase si `DATABASE_URL` est défini dans `server/.env`, sinon PGlite local (`server/data/pglite`). Le détail est dans le [README.md](README.md).
+
+## Base de données
+
+- Schéma unique : `server/db/schema.sql` (tables et colonnes en français, `snake_case`). Il doit rester ré-exécutable (`if not exists`).
+- Toutes les requêtes passent par `requete(sql, params)` de `server/src/db.js`, **toujours paramétrées** (`$1`, `$2`…), jamais de concaténation de valeurs dans le SQL.
+- Les lignes SQL sont converties en objets `camelCase` par `versHackathon`, `versUtilisateur`, `versInscription` : le format JSON envoyé au client ne change pas.
+- Ne jamais versionner `server/.env` ni coller la chaîne de connexion Supabase dans le code ou dans un message.
+- Données réelles uniquement dans `server/data/seed.json` : une information inconnue reste `null` (le site affiche « À confirmer »), on n'invente pas de chiffres.
+- RLS doit rester activé sur toutes les tables (sinon l'API publique de Supabase exposerait les comptes).
 
 ## Lancer le projet
 
@@ -57,10 +66,13 @@ hackfest/
 │       ├── data/constants.js    # Domaines, régions, statuts… (libellés)
 │       └── utils/format.js      # Dates en français, règles d'inscription
 └── server/                      # API Node.js + Express
-    ├── data/seed.json           # Données de départ (db.json est généré, non versionné)
+    ├── .env.example             # Modèle de server/.env (DATABASE_URL, JWT_SECRET)
+    ├── db/schema.sql            # Tables PostgreSQL
+    ├── data/seed.json           # Vrais hackathons (data/pglite est généré, non versionné)
     └── src/
         ├── index.js             # Création du serveur
-        ├── db.js                # Lecture / écriture du fichier JSON
+        ├── env.js               # Chargement de server/.env (importé en premier)
+        ├── db.js                # Connexion PostgreSQL (Supabase / PGlite) et conversions
         ├── constants.js         # Valeurs autorisées (mêmes listes que le client)
         ├── middleware/auth.js   # Vérification du jeton JWT
         ├── routes/              # auth, hackathons, inscriptions, contact

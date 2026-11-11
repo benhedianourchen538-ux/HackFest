@@ -64,7 +64,7 @@ function Publication({ hackathon, onSupprimer }) {
         <div className="text-center sm:px-4">
           <p className="font-display text-2xl font-bold text-navy">
             {hackathon.inscrits}
-            <span className="text-base text-slate-400">/{hackathon.places}</span>
+            {hackathon.places != null && <span className="text-base text-slate-400">/{hackathon.places}</span>}
           </p>
           <p className="text-xs text-slate-500">inscrits</p>
         </div>

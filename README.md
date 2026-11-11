@@ -15,7 +15,7 @@ HackFest réunit les hackathons étudiants de Tunisie sur une seule plateforme. 
 | Frontend | **React 18 + Vite**, React Router 6 | React est connu de l’équipe (même logique qu’Expo). Vite remplace `create-react-app`, qui n’est plus maintenu : démarrage et rechargement beaucoup plus rapides. |
 | Gestion d’état | React Hooks (`useState`, `useEffect`) + Context API | Suffisant pour ce projet : `AuthContext` (utilisateur connecté) et `ToastContext` (notifications). Pas besoin de Redux. |
 | Backend | **Node.js + Express** (API REST) | Le même langage (JavaScript) côté client et côté serveur. |
-| Données | Fichier JSON (`server/data/db.json`) | « Backend minimal » demandé pour cet objectif. Prévu ensuite : PostgreSQL (Supabase) + Prisma. |
+| Données | **PostgreSQL** : **Supabase** en ligne, ou **PGlite** (PostgreSQL intégré) en local, avec le pilote `pg` | Vraie base relationnelle (tables, clés étrangères, contraintes). Le même schéma (`server/db/schema.sql`) sert en local et sur Supabase : sans configuration, le projet se lance quand même. |
 | Authentification | **JWT** (`jsonwebtoken`) + mots de passe hachés (`bcryptjs`) | Connexion sécurisée sans service externe, donc le projet se lance sans configuration. Prévu ensuite : Supabase Auth. |
 | Icônes / polices | lucide-react, Poppins (titres) et Inter (texte) | Icônes légères ; polices de la charte graphique. |
 
@@ -63,8 +63,23 @@ npm run dev          # site sur http://localhost:5173
 
 **Compte de démonstration :** `demo@hackfest.tn` / `demo1234` (ou crée ton propre compte).
 
+Sans configuration, l’API utilise une base PostgreSQL locale (`server/data/pglite`), créée et remplie automatiquement au premier lancement.
+
+### Brancher la base Supabase
+1. Créer un compte sur [supabase.com](https://supabase.com), puis **New project** (région *Central EU (Frankfurt)*, plan Free). **Noter le mot de passe de la base.**
+2. Dans le projet : bouton **Connect** → **Connection string** → **Session pooler** → copier l’URI.
+3. Copier `server/.env.example` en `server/.env` et remplir :
+   ```
+   DATABASE_URL=postgresql://postgres.xxxx:MOT_DE_PASSE@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
+   JWT_SECRET=une-longue-chaine-aleatoire
+   ```
+4. Relancer `npm run dev` dans `server/` : les tables sont créées et les hackathons insérés automatiquement. Le terminal affiche `base : Supabase`.
+
+`server/.env` n’est jamais versionné (`.gitignore`) : chaque membre de l’équipe crée le sien. Les tables ont la sécurité RLS activée, donc l’API REST publique de Supabase ne peut pas les lire ; seule notre API Express y accède.
+
 Commandes utiles :
-- `npm run reset-db` (dans `server/`) remet les données de départ (12 hackathons d’exemple).
+- `npm run sync-seed` (dans `server/`) ajoute ou met à jour dans la base les hackathons de `data/seed.json`, **sans rien supprimer**. À lancer après avoir complété des informations dans ce fichier.
+- `npm run reset-db` (dans `server/`) supprime **toutes** les données (comptes, inscriptions) et remet les hackathons de `data/seed.json`. Sur Supabase si `DATABASE_URL` est défini.
 - `npm run build` (dans `client/`) crée la version de production dans `client/dist`.
 - Pour changer l’adresse de l’API, copie `client/.env.example` en `client/.env`.
 
@@ -88,10 +103,13 @@ hackfest/
 │       ├── data/constants.js    # Domaines, régions, types d'organisateurs
 │       └── utils/format.js      # Dates en français, règles d'inscription
 └── server/                      # API Node.js + Express
-    ├── data/seed.json           # Données de départ
+    ├── .env.example             # Modèle de configuration (DATABASE_URL Supabase, JWT_SECRET)
+    ├── db/schema.sql            # Tables PostgreSQL (utilisateurs, hackathons, inscriptions, messages)
+    ├── data/seed.json           # Vrais hackathons insérés au premier lancement
     └── src/
         ├── index.js             # Création du serveur
-        ├── db.js                # Lecture / écriture du fichier JSON
+        ├── env.js               # Chargement de server/.env
+        ├── db.js                # Connexion PostgreSQL (Supabase ou PGlite local), conversion des lignes
         ├── middleware/auth.js   # Vérification du jeton JWT
         ├── routes/              # auth, hackathons, inscriptions, contact
         └── utils/hackathons.js  # Filtres, tri, statut (fonctions pures)
@@ -117,7 +135,7 @@ Conventions : composants et pages en `PascalCase.jsx`, fonctions et variables en
 | DELETE | `/api/inscriptions/:id` | connecté | Annuler une inscription |
 | POST | `/api/contact` | public | Formulaire de contact |
 
-Règles vérifiées par le serveur : pas de double inscription, places limitées, inscriptions fermées après la date limite, taille maximale des équipes, seul l’organisateur voit ses inscrits.
+Règles vérifiées par le serveur : pas de double inscription (aussi garanti par une contrainte `unique` en base), places limitées, inscriptions fermées après la date limite, taille maximale des équipes, seul l’organisateur voit ses inscrits. Une date limite ou un nombre de places à `null` signifie « non communiqué » : le site affiche « À confirmer » et ce critère ne bloque pas l’inscription.
 
 ## 6. Travail en équipe
 
@@ -132,6 +150,6 @@ Règles vérifiées par le serveur : pas de double inscription, places limitées
 
 ## 8. Prochaines étapes
 
-1. Remplacer le fichier JSON par **PostgreSQL (Supabase) + Prisma**.
+1. ~~Remplacer le fichier JSON par PostgreSQL (Supabase)~~ : fait. Compléter les informations des vrais hackathons (places, dates limites, prix) dans `server/data/seed.json` ou directement dans Supabase.
 2. Passer l’authentification sur **Supabase Auth** (vérification d’e-mail, mot de passe oublié, connexion Google).
 3. Ajouter l’envoi d’images (bannières) avec Supabase Storage, puis déployer (Vercel pour le site, Render pour l’API).
