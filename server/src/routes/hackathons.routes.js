@@ -1,20 +1,31 @@
-// URL de /api/hackathons -> controller (et middlewares à passer avant)
+// URL de /api/hackathons -> middlewares -> controller
 import { Router } from 'express';
 import * as hackathons from '../controllers/hackathons.controller.js';
 import * as inscriptions from '../controllers/inscriptions.controller.js';
 import { requireAuth, requireRole } from '../middlewares/auth.js';
+import { valider } from '../middlewares/valider.js';
+import { schemaId } from '../validators/commun.js';
+import { schemaFiltres, schemaHackathon } from '../validators/hackathon.validator.js';
+import { schemaInscriptionHackathon } from '../validators/inscription.validator.js';
 import { gererAsync } from '../utils/erreurs.js';
 
 const router = Router();
+const id = valider({ params: schemaId });
 
-router.get('/', gererAsync(hackathons.lister));
+router.get('/', valider({ query: schemaFiltres }, { message: 'Paramètres de recherche invalides.' }), gererAsync(hackathons.lister));
 // "/mine" est déclarée avant "/:id" pour ne pas être confondue avec un identifiant
 router.get('/mine', requireAuth, gererAsync(hackathons.mesPublications));
-router.get('/:id', gererAsync(hackathons.detail));
-router.get('/:id/inscrits', requireAuth, gererAsync(hackathons.inscrits));
+router.get('/:id', id, gererAsync(hackathons.detail));
+router.get('/:id/inscrits', requireAuth, id, gererAsync(hackathons.inscrits));
 // Publier : seulement les comptes organisateur (et les admins)
-router.post('/', requireAuth, requireRole('organisateur', 'admin'), gererAsync(hackathons.publier));
-router.delete('/:id', requireAuth, gererAsync(hackathons.supprimer));
-router.post('/:id/inscriptions', requireAuth, gererAsync(inscriptions.sInscrire));
+router.post('/', requireAuth, requireRole('organisateur', 'admin'), valider({ body: schemaHackathon }), gererAsync(hackathons.publier));
+router.delete('/:id', requireAuth, id, gererAsync(hackathons.supprimer));
+router.post(
+  '/:id/inscriptions',
+  requireAuth,
+  // Le message du toast reprend la première erreur ("Nom d'équipe requis.", …)
+  valider({ params: schemaId, body: schemaInscriptionHackathon }, { message: (errors) => Object.values(errors)[0] }),
+  gererAsync(inscriptions.sInscrire),
+);
 
 export default router;

@@ -46,29 +46,10 @@ export async function listerInscrits(id, utilisateur) {
   });
 }
 
-/** Publie un hackathon (données déjà validées) et le renvoie */
-export async function publier(b, utilisateur) {
+/** Publie un hackathon et le renvoie (données déjà nettoyées par Zod : textes sans espaces, nombres convertis) */
+export async function publier(donnees, utilisateur) {
   const cree = await prisma.hackathon.create({
-    data: {
-      ...versDonneesHackathon({
-        titre: b.titre.trim(),
-        description: b.description.trim(),
-        organisateur: { nom: b.organisateur.nom.trim(), type: b.organisateur.type },
-        domaine: b.domaine,
-        region: b.region,
-        format: b.format,
-        lieu: b.lieu.trim(),
-        dateDebut: b.dateDebut,
-        dateFin: b.dateFin,
-        dateLimite: b.dateLimite,
-        places: Number(b.places),
-        tailleEquipeMax: Number(b.tailleEquipeMax) || 4,
-        prix: Array.isArray(b.prix) ? b.prix.filter(Boolean) : [],
-        programme: Array.isArray(b.programme) ? b.programme.filter((p) => p?.titre) : [],
-        reglement: (b.reglement || '').trim(),
-      }),
-      creePar: utilisateur.id,
-    },
+    data: { ...versDonneesHackathon(donnees), creePar: utilisateur.id },
   });
   return trouver(cree.id);
 }

@@ -1,21 +1,19 @@
-// Données attendues par les routes /api/auth. Chaque fonction renvoie { champ: message } (vide si tout est bon).
+// Données attendues par les routes /api/auth (schémas Zod).
+import { z } from 'zod';
 import { ROLES_INSCRIPTION } from '../constants.js';
+import { email, texte, texteFacultatif } from './commun.js';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function validerInscription(b = {}) {
-  const errors = {};
-  if (!b.nom || String(b.nom).trim().length < 2) errors.nom = 'Indique ton nom complet.';
-  if (!b.email || !EMAIL_RE.test(b.email)) errors.email = 'Adresse e-mail invalide.';
-  if (!b.password || String(b.password).length < 8) errors.password = 'Au moins 8 caractères.';
+export const schemaInscription = z.object({
+  nom: texte(2, 100, 'Indique ton nom complet.'),
+  email: email(),
+  // bcrypt ne lit que les 72 premiers octets : au-delà, la fin du mot de passe serait ignorée
+  password: z.string({ error: 'Au moins 8 caractères.' }).min(8, 'Au moins 8 caractères.').max(72, '72 caractères maximum.'),
+  universite: texteFacultatif(120),
   // Facultatif (participant par défaut) ; "admin" est refusé
-  if (b.role !== undefined && !ROLES_INSCRIPTION.includes(b.role)) errors.role = 'Type de compte invalide.';
-  return errors;
-}
+  role: z.enum(ROLES_INSCRIPTION, { error: 'Type de compte invalide.' }).optional().default('participant'),
+});
 
-export function validerConnexion(b = {}) {
-  const errors = {};
-  if (!b.email) errors.email = 'E-mail requis.';
-  if (!b.password) errors.password = 'Mot de passe requis.';
-  return errors;
-}
+export const schemaConnexion = z.object({
+  email: z.string({ error: 'E-mail requis.' }).trim().toLowerCase().min(1, 'E-mail requis.').max(254),
+  password: z.string({ error: 'Mot de passe requis.' }).min(1, 'Mot de passe requis.').max(200),
+});

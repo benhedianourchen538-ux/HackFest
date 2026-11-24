@@ -1,7 +1,5 @@
-// Lit la requête, appelle le service, envoie la réponse. Aucune règle métier ici.
+// Lit la requête (déjà validée par Zod), appelle le service, envoie la réponse. Aucune règle métier ici.
 import * as hackathonsService from '../services/hackathons.service.js';
-import { exigerValide } from '../validators/index.js';
-import { validerHackathon } from '../validators/hackathon.validator.js';
 
 // GET /api/hackathons?q=&organisateur=&region=&domaine=&statut=&format=&tri=
 export async function lister(req, res) {
@@ -26,7 +24,6 @@ export async function inscrits(req, res) {
 
 // POST /api/hackathons
 export async function publier(req, res) {
-  exigerValide(validerHackathon(req.body));
   res.status(201).json({ hackathon: await hackathonsService.publier(req.body, req.user) });
 }
 
