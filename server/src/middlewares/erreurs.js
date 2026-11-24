@@ -38,7 +38,11 @@ function traduire(err) {
 export function gestionnaireErreurs(err, req, res, next) {
   const erreur = traduire(err);
   if (erreur) {
-    return res.status(erreur.status).json({ message: erreur.message, ...(erreur.errors && { errors: erreur.errors }) });
+    return res.status(erreur.status).json({
+      message: erreur.message,
+      ...(erreur.errors && { errors: erreur.errors }),
+      ...(erreur.code && { code: erreur.code }),
+    });
   }
   // Erreur imprévue : détail dans le terminal, message neutre pour le client (on ne dévoile rien du serveur)
   console.error(err);

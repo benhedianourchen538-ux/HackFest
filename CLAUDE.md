@@ -19,7 +19,8 @@ Plateforme de hackathons étudiants en Tunisie. Frontend React 18 + Vite + Tailw
 - `routes/` : URL → middlewares → controller. `controllers/` : lire `req`, appeler un service, répondre. `services/` : règles métier + Prisma ; une erreur prévue = `throw new ErreurApi(status, message, errors?)`.
 - Toute entrée (body, query, params) est validée par un schéma **Zod** de `validators/` via le middleware `valider(...)`. Les noms d'erreurs suivent les champs du formulaire client (`organisateurNom`…).
 - Droits : `requireAuth`, puis `requireRole('organisateur', 'admin')` ; « auteur ou admin » est vérifié dans le service.
-- Les erreurs passent toutes par `middlewares/erreurs.js` (réponse `{ message, errors? }`). Pas de `res.status(500)` ailleurs.
+- Les erreurs passent toutes par `middlewares/erreurs.js` (réponse `{ message, errors?, code? }`). Pas de `res.status(500)` ailleurs.
+- Comptes : mot de passe fort (règles `REGLES_MOT_DE_PASSE`, identiques côté client et serveur) et e-mail vérifié par un code à 6 chiffres avant toute connexion. Les e-mails partent uniquement par `services/email.service.js` (Nodemailer, `SMTP_USER` / `SMTP_PASS` dans `server/.env`, jamais dans le code). Une valeur venant de l'utilisateur insérée dans le HTML d'un e-mail est toujours échappée.
 
 ## Lancer le projet
 

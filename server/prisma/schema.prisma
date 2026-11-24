@@ -31,6 +31,13 @@ model Utilisateur {
   role           Role     @default(participant)
   creeLe         DateTime @default(now()) @map("cree_le") @db.Timestamptz(6)
 
+  // Vérification de l'adresse e-mail (code à 6 chiffres envoyé à l'inscription)
+  emailVerifie         Boolean   @default(false) @map("email_verifie")
+  codeVerificationHash String?   @map("code_verification_hash") // le code n'est jamais stocké en clair
+  codeExpireLe         DateTime? @map("code_expire_le") @db.Timestamptz(6)
+  codeTentatives       Int       @default(0) @map("code_tentatives") // essais ratés pour le code actuel
+  codeEnvoyeLe         DateTime? @map("code_envoye_le") @db.Timestamptz(6) // pour limiter les renvois
+
   hackathons   Hackathon[]
   inscriptions Inscription[]
 

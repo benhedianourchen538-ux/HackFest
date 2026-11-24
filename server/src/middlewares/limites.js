@@ -20,6 +20,28 @@ export const limiteGenerale = rateLimit({
 });
 
 /**
+ * Code de vérification : 10 échecs max en 15 min par (IP, e-mail), en plus des 5 essais par code.
+ * Renvoi du code : 5 demandes max en 15 min par IP (évite d'inonder une boîte mail).
+ */
+export const limiteVerification = rateLimit({
+  windowMs: QUINZE_MINUTES,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  keyGenerator: (req) => `${ipKeyGenerator(req.ip)}|${String(req.body?.email || '').trim().toLowerCase()}`,
+  handler: (req, res) => res.status(429).json({ message: 'Trop de tentatives. Réessaie dans 15 minutes.' }),
+});
+
+export const limiteRenvoiCode = rateLimit({
+  windowMs: QUINZE_MINUTES,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({ message: 'Trop de demandes de code. Réessaie dans 15 minutes.' }),
+});
+
+/**
  * Connexion : 5 échecs maximum en 15 minutes pour un même couple (adresse IP, e-mail).
  * Les connexions réussies ne comptent pas (skipSuccessfulRequests).
  */

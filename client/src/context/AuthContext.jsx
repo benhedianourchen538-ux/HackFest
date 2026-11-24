@@ -27,13 +27,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback((email, password) => api.login(email, password).then(handleSession), [handleSession]);
-  const register = useCallback((payload) => api.register(payload).then(handleSession), [handleSession]);
+  // Inscription : le compte est créé mais pas encore connecté (un code est envoyé par e-mail)
+  const register = useCallback((payload) => api.register(payload), []);
+  // Saisie du code reçu : le compte est activé et l'utilisateur connecté
+  const verifierEmail = useCallback((email, code) => api.verifierEmail(email, code).then(handleSession), [handleSession]);
   const logout = useCallback(() => {
     tokenStorage.clear();
     setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout]);
+  const value = useMemo(
+    () => ({ user, loading, login, register, verifierEmail, logout }),
+    [user, loading, login, register, verifierEmail, logout],
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

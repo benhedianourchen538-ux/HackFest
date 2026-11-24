@@ -5,11 +5,13 @@ export class ErreurApi extends Error {
    * @param {number} status code HTTP (400, 401, 403, 404, 409…)
    * @param {string} message message affiché à l'utilisateur
    * @param {Record<string, string>} [errors] erreurs par champ de formulaire
+   * @param {string} [code] identifiant lisible par le client (ex. "EMAIL_NON_VERIFIE")
    */
-  constructor(status, message, errors) {
+  constructor(status, message, errors, code) {
     super(message);
     this.status = status;
     this.errors = errors;
+    this.code = code;
   }
 }
 

@@ -22,6 +22,7 @@ export async function semer(prisma) {
       email: DEMO_USER.email,
       universite: "SUP'COM",
       role: 'organisateur',
+      emailVerifie: true,
       motDePasseHash: await bcrypt.hash(DEMO_USER.password, 10),
     },
   });
@@ -31,11 +32,12 @@ export async function semer(prisma) {
   if (ADMIN_EMAIL && ADMIN_PASSWORD) {
     await prisma.utilisateur.upsert({
       where: { email: ADMIN_EMAIL.toLowerCase() },
-      update: { role: 'admin' },
+      update: { role: 'admin', emailVerifie: true },
       create: {
         nom: 'Administrateur',
         email: ADMIN_EMAIL.toLowerCase(),
         role: 'admin',
+        emailVerifie: true,
         motDePasseHash: await bcrypt.hash(ADMIN_PASSWORD, 10),
       },
     });

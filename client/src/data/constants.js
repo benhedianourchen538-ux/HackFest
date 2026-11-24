@@ -57,6 +57,18 @@ export const ROLES_INSCRIPTION = [
   { value: 'organisateur', label: 'Organisateur', description: 'Je publie aussi des hackathons.' },
 ];
 
+// Règles du mot de passe à l'inscription (mêmes règles que server/src/validators/commun.js)
+export const REGLES_MOT_DE_PASSE = [
+  { label: '8 caractères minimum', test: (m) => m.length >= 8 },
+  { label: 'Une majuscule', test: (m) => /[A-Z]/.test(m) },
+  { label: 'Une minuscule', test: (m) => /[a-z]/.test(m) },
+  { label: 'Un chiffre', test: (m) => /[0-9]/.test(m) },
+  { label: 'Un symbole (! ? # @ …)', test: (m) => /[^A-Za-z0-9]/.test(m) },
+];
+
+// Vérification de l'e-mail (mêmes valeurs que server/src/services/auth.service.js)
+export const VERIFICATION = { dureeMinutes: 15, delaiRenvoiSecondes: 60 };
+
 // Rôles autorisés à publier (même règle que requireRole côté serveur)
 export const ROLES_PUBLICATION = ['organisateur', 'admin'];
 export const peutPublier = (user) => Boolean(user && ROLES_PUBLICATION.includes(user.role));

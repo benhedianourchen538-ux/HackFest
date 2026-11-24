@@ -15,10 +15,11 @@ export const tokenStorage = {
 export const urlImage = (chemin) => new URL(chemin, API_URL).href;
 
 export class ApiError extends Error {
-  constructor(message, status, errors = {}) {
+  constructor(message, status, errors = {}, code = undefined) {
     super(message);
     this.status = status;
     this.errors = errors;
+    this.code = code; // ex. "EMAIL_NON_VERIFIE"
   }
 }
 
@@ -45,14 +46,16 @@ async function request(path, { method = 'GET', body, params } = {}) {
 
   if (response.status === 204) return null;
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new ApiError(data.message || 'Une erreur est survenue.', response.status, data.errors);
+  if (!response.ok) throw new ApiError(data.message || 'Une erreur est survenue.', response.status, data.errors, data.code);
   return data;
 }
 
 export const api = {
   // Authentification
   login: (email, password) => request('/auth/login', { method: 'POST', body: { email, password } }),
-  register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
+  register: (payload) => request('/auth/register', { method: 'POST', body: payload }), // envoie un code par e-mail
+  verifierEmail: (email, code) => request('/auth/verifier-email', { method: 'POST', body: { email, code } }),
+  renvoyerCode: (email) => request('/auth/renvoyer-code', { method: 'POST', body: { email } }),
   me: () => request('/auth/me'),
 
   // Hackathons

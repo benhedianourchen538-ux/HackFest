@@ -2,6 +2,9 @@
 import request from 'supertest';
 import app from '../src/app.js';
 import { prisma } from '../src/prisma.js';
+import { boiteDeTest } from '../src/services/email.service.js';
+
+export { boiteDeTest };
 
 export const api = () => request(app);
 
@@ -18,13 +21,27 @@ export async function viderBase() {
 
 let compteur = 0;
 
-/** Crée un compte par l'API (rôle participant ou organisateur) ; admin : promu directement en base */
+/** Mot de passe qui respecte les règles (majuscule, minuscule, chiffre, symbole) */
+export const MOT_DE_PASSE = 'Hackfest#2026';
+
+/** Dernier code à 6 chiffres "envoyé" à cette adresse (boîte de test en mémoire) */
+export function dernierCode(email) {
+  const mail = [...boiteDeTest].reverse().find((m) => m.a === email);
+  return mail?.texte.match(/\b\d{6}\b/)?.[0];
+}
+
+/**
+ * Crée un compte par l'API, comme un vrai utilisateur : inscription -> code reçu par e-mail -> saisie du code.
+ * Rôle participant ou organisateur ; admin : promu directement en base.
+ */
 export async function creerCompte(role = 'participant') {
   compteur += 1;
   const email = `${role}-${compteur}-${Date.now()}@test.tn`;
-  const res = await api()
+  await api()
     .post('/api/auth/register')
-    .send({ nom: `Test ${role} ${compteur}`, email, password: 'motdepasse1', role: role === 'admin' ? 'participant' : role });
+    .send({ nom: `Test ${role} ${compteur}`, email, password: MOT_DE_PASSE, role: role === 'admin' ? 'participant' : role });
+  const res = await api().post('/api/auth/verifier-email').send({ email, code: dernierCode(email) });
+  if (res.status !== 200) throw new Error(`Vérification impossible : ${res.status} ${JSON.stringify(res.body)}`);
   if (role === 'admin') await prisma.utilisateur.update({ where: { email }, data: { role: 'admin' } });
   return { token: res.body.token, user: res.body.user, email };
 }
