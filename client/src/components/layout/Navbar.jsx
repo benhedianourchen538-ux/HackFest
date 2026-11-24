@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LayoutList, LogOut, Menu, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { peutPublier } from '../../data/constants';
 
 const LIENS_VISITEUR = [
   { to: '/', label: 'Accueil', end: true },
@@ -10,6 +11,8 @@ const LIENS_VISITEUR = [
   { to: '/#a-propos', label: 'À propos', hash: true },
   { to: '/#faq', label: 'FAQ', hash: true },
 ];
+
+const LIBELLES_ROLE = { participant: 'Participant', organisateur: 'Organisateur', admin: 'Administrateur' };
 
 const LIENS_CONNECTE = [
   { to: '/hackathons', label: 'Hackathons' },
@@ -46,7 +49,9 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
-  const liens = user ? LIENS_CONNECTE : LIENS_VISITEUR;
+  // "Publier" et "Mes publications" : seulement pour les organisateurs (et admins)
+  const organisateur = peutPublier(user);
+  const liens = user ? LIENS_CONNECTE.filter((l) => organisateur || l.to !== '/publier') : LIENS_VISITEUR;
 
   // Ferme les menus quand on change de page
   useEffect(() => {
@@ -111,10 +116,13 @@ export default function Navbar() {
                   <div className="border-b border-slate-100 px-4 pb-2">
                     <p className="text-sm font-semibold text-navy">{user.nom}</p>
                     <p className="truncate text-xs text-slate-500">{user.email}</p>
+                    <span className="mt-1 inline-block rounded-full bg-glace px-2 py-0.5 text-xs font-medium text-tech">{LIBELLES_ROLE[user.role] ?? user.role}</span>
                   </div>
-                  <Link role="menuitem" to="/mes-publications" className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-glace">
-                    <LayoutList className="h-4 w-4 text-tech" aria-hidden="true" /> Mes publications
-                  </Link>
+                  {organisateur && (
+                    <Link role="menuitem" to="/mes-publications" className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-glace">
+                      <LayoutList className="h-4 w-4 text-tech" aria-hidden="true" /> Mes publications
+                    </Link>
+                  )}
                   <button role="menuitem" type="button" onClick={handleLogout} className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-sup hover:bg-red-50">
                     <LogOut className="h-4 w-4" aria-hidden="true" /> Se déconnecter
                   </button>
@@ -146,9 +154,11 @@ export default function Navbar() {
             {liens.map(renderLink)}
             {user ? (
               <>
-                <Link to="/mes-publications" className="py-2 text-sm font-medium text-slate-600">
-                  Mes publications
-                </Link>
+                {organisateur && (
+                  <Link to="/mes-publications" className="py-2 text-sm font-medium text-slate-600">
+                    Mes publications
+                  </Link>
+                )}
                 <button type="button" onClick={handleLogout} className="btn btn-outline mt-3">
                   Se déconnecter
                 </button>

@@ -10,6 +10,7 @@ import MesEvenements from './pages/MesEvenements';
 import Publier from './pages/Publier';
 import MesPublications from './pages/MesPublications';
 import NotFound from './pages/NotFound';
+import { ROLES_PUBLICATION } from './data/constants';
 
 export default function App() {
   return (
@@ -24,8 +25,10 @@ export default function App() {
         {/* Pages réservées aux utilisateurs connectés */}
         <Route path="/hackathons/:id/inscription" element={<ProtectedRoute><Inscription /></ProtectedRoute>} />
         <Route path="/mes-evenements" element={<ProtectedRoute><MesEvenements /></ProtectedRoute>} />
-        <Route path="/publier" element={<ProtectedRoute><Publier /></ProtectedRoute>} />
-        <Route path="/mes-publications" element={<ProtectedRoute><MesPublications /></ProtectedRoute>} />
+
+        {/* Pages réservées aux organisateurs (et admins) */}
+        <Route path="/publier" element={<ProtectedRoute roles={ROLES_PUBLICATION}><Publier /></ProtectedRoute>} />
+        <Route path="/mes-publications" element={<ProtectedRoute roles={ROLES_PUBLICATION}><MesPublications /></ProtectedRoute>} />
 
         <Route path="*" element={<NotFound />} />
       </Route>

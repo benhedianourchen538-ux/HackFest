@@ -5,9 +5,10 @@ import { Logo } from '../components/layout/Navbar';
 import { Field } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { ROLES_INSCRIPTION } from '../data/constants';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const VIDE = { nom: '', email: '', universite: '', password: '', confirmation: '' };
+const VIDE = { nom: '', email: '', universite: '', password: '', confirmation: '', role: 'participant' };
 
 export default function Connexion() {
   const { user, login, register } = useAuth();
@@ -41,8 +42,11 @@ export default function Connexion() {
     if (mode === 'inscription' && form.nom.trim().length < 2) errs.nom = 'Indique ton nom complet.';
     if (!EMAIL_RE.test(form.email)) errs.email = 'Adresse e-mail invalide.';
     if (mode === 'inscription') {
+      // Mêmes règles que le schéma Zod du serveur (bcrypt ne lit que 72 caractères)
       if (form.password.length < 8) errs.password = 'Au moins 8 caractères.';
+      else if (form.password.length > 72) errs.password = '72 caractères maximum.';
       if (form.confirmation !== form.password) errs.confirmation = 'Les mots de passe ne correspondent pas.';
+      if (!ROLES_INSCRIPTION.some((r) => r.value === form.role)) errs.role = 'Choisis un type de compte.';
     } else if (!form.password) {
       errs.password = 'Mot de passe requis.';
     }
@@ -60,7 +64,7 @@ export default function Connexion() {
       const u =
         mode === 'connexion'
           ? await login(form.email, form.password)
-          : await register({ nom: form.nom, email: form.email, universite: form.universite, password: form.password });
+          : await register({ nom: form.nom, email: form.email, universite: form.universite, password: form.password, role: form.role });
       notify(mode === 'connexion' ? `Bon retour, ${u.nom.split(' ')[0]} !` : 'Compte créé, bienvenue sur HackFest !');
       navigate(redirect, { replace: true });
     } catch (err) {
@@ -117,6 +121,22 @@ export default function Connexion() {
           <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
             {mode === 'inscription' && (
               <>
+                <fieldset>
+                  <legend className="label">Type de compte</legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    {ROLES_INSCRIPTION.map((r) => (
+                      <label
+                        key={r.value}
+                        className={`cursor-pointer rounded-xl border-2 p-3 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-tech ${form.role === r.value ? 'border-tech bg-glace' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                      >
+                        <input type="radio" name="role" value={r.value} checked={form.role === r.value} onChange={update} className="sr-only" />
+                        <span className="block text-sm font-semibold text-navy">{r.label}</span>
+                        <span className="mt-0.5 block text-xs text-slate-500">{r.description}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {errors.role && <p className="error-text">{errors.role}</p>}
+                </fieldset>
                 <Field label="Nom complet" id="nom" error={errors.nom}>
                   <input id="nom" name="nom" className="input" value={form.nom} onChange={update} autoComplete="name" />
                 </Field>

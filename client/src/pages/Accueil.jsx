@@ -6,7 +6,7 @@ import { Field, Spinner } from '../components/ui';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { DOMAINES } from '../data/constants';
+import { DOMAINES, peutPublier } from '../data/constants';
 
 const ETAPES = [
   { icon: Compass, titre: 'Découvrir', texte: 'Filtre les hackathons par domaine, région ou organisateur.' },
@@ -144,9 +144,13 @@ export default function Accueil() {
               <Link to="/hackathons" className="btn btn-primary">
                 Explorer les hackathons <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              {user ? (
+              {peutPublier(user) ? (
                 <Link to="/publier" className="btn border-2 border-white text-white hover:bg-white hover:text-navy">
                   Publier un hackathon
+                </Link>
+              ) : user ? (
+                <Link to="/mes-evenements" className="btn border-2 border-white text-white hover:bg-white hover:text-navy">
+                  Mes événements
                 </Link>
               ) : (
                 <Link to="/connexion" className="btn border-2 border-white text-white hover:bg-white hover:text-navy">

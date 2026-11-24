@@ -51,6 +51,16 @@ export const TRIS = [
   { value: 'places', label: 'Places disponibles' },
 ];
 
+// Rôles qu'on peut choisir en créant son compte (mêmes valeurs que server/src/constants.js ; "admin" ne se choisit pas)
+export const ROLES_INSCRIPTION = [
+  { value: 'participant', label: 'Participant', description: 'Je m’inscris aux hackathons.' },
+  { value: 'organisateur', label: 'Organisateur', description: 'Je publie aussi des hackathons.' },
+];
+
+// Rôles autorisés à publier (même règle que requireRole côté serveur)
+export const ROLES_PUBLICATION = ['organisateur', 'admin'];
+export const peutPublier = (user) => Boolean(user && ROLES_PUBLICATION.includes(user.role));
+
 // Bannière d'un hackathon : mêmes limites que le serveur (server/src/utils/fichiers.js)
 export const BANNIERE = {
   types: ['image/jpeg', 'image/png', 'image/webp'],
