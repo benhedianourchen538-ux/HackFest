@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import multer from 'multer';
 import { ErreurApi } from '../utils/erreurs.js';
 
 /** Aucune route ne correspond à l'URL demandée */
@@ -14,6 +15,12 @@ function traduire(err) {
   // Erreurs d'express.json() : corps illisible ou trop gros
   if (err.type === 'entity.parse.failed') return new ErreurApi(400, 'Données JSON invalides.');
   if (err.type === 'entity.too.large') return new ErreurApi(413, 'Données trop volumineuses.');
+
+  // Erreurs de Multer (upload de fichier)
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') return new ErreurApi(413, 'Image trop lourde (2 Mo maximum).', { banniere: 'Image trop lourde (2 Mo maximum).' });
+    return new ErreurApi(400, 'Envoie une seule image, dans le champ « banniere ».', { banniere: 'Fichier invalide.' });
+  }
 
   // Erreurs de Prisma qui ont un sens pour l'utilisateur
   if (err instanceof Prisma.PrismaClientKnownRequestError) {

@@ -4,3 +4,6 @@ dist/
 .DS_Store
 # Ancienne base JSON (avant le passage à PostgreSQL)
 server/data/db.json
+
+# Images envoyées par les utilisateurs (bannières)
+server/uploads/

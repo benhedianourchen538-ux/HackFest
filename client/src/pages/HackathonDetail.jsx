@@ -113,7 +113,7 @@ export default function HackathonDetail() {
   return (
     <article>
       <div className="relative">
-        <Cover domaine={h.domaine} size="lg" className="h-56 sm:h-72" />
+        <Cover domaine={h.domaine} banniere={h.banniere} size="lg" className="h-56 sm:h-72" />
       </div>
 
       <div className="container-page">

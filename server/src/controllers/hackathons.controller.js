@@ -27,6 +27,17 @@ export async function publier(req, res) {
   res.status(201).json({ hackathon: await hackathonsService.publier(req.body, req.user) });
 }
 
+// Avant de recevoir le fichier : seul l'auteur (ou un admin) peut envoyer une bannière
+export async function verifierGestion(req, res, next) {
+  await hackathonsService.verifierGestion(req.params.id, req.user);
+  next();
+}
+
+// PUT /api/hackathons/:id/banniere  (multipart/form-data, champ "banniere")
+export async function changerBanniere(req, res) {
+  res.json({ hackathon: await hackathonsService.changerBanniere(req.params.id, req.user, req.file) });
+}
+
 // DELETE /api/hackathons/:id
 export async function supprimer(req, res) {
   await hackathonsService.supprimer(req.params.id, req.user);

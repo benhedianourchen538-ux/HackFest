@@ -21,7 +21,7 @@ function EvenementItem({ inscription, onAnnuler }) {
 
   return (
     <li className="card flex flex-col overflow-hidden sm:flex-row">
-      <Cover domaine={h.domaine} className="h-28 sm:h-auto sm:w-40" />
+      <Cover domaine={h.domaine} banniere={h.banniere} className="h-28 sm:h-auto sm:w-40" />
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`badge ${domaineOf(h.domaine).color}`}>{domaineOf(h.domaine).label}</span>

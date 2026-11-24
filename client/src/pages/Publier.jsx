@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Plus, Save, Trash2 } from 'lucide-react';
 import HackathonCard from '../components/HackathonCard';
 import { Field, PageHeader, Stepper } from '../components/ui';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
-import { DOMAINES, FORMATS, REGIONS, TYPES_ORGANISATEUR, labelOf } from '../data/constants';
+import { BANNIERE, DOMAINES, FORMATS, REGIONS, TYPES_ORGANISATEUR, labelOf } from '../data/constants';
 import { aujourdhui, formatDate, formatPeriode } from '../utils/format';
 
 const ETAPES = ['Infos', 'Dates & lieu', 'Programme & prix', 'Règlement', 'Aperçu'];
@@ -42,7 +42,7 @@ function lireBrouillon() {
 const ETAPE_DU_CHAMP = {
   titre: 0, description: 0, organisateurNom: 0, organisateurType: 0, domaine: 0,
   format: 1, region: 1, lieu: 1, dateDebut: 1, dateFin: 1, dateLimite: 1,
-  places: 3,
+  places: 3, tailleEquipeMax: 3, banniere: 3,
 };
 
 export default function Publier() {
@@ -52,6 +52,35 @@ export default function Publier() {
   const [etape, setEtape] = useState(0);
   const [errors, setErrors] = useState({});
   const [envoi, setEnvoi] = useState(false);
+  // Bannière : le fichier choisi (non enregistré dans le brouillon) et son aperçu local
+  const [banniere, setBanniere] = useState(null);
+  const [apercuBanniere, setApercuBanniere] = useState(null);
+
+  useEffect(() => {
+    if (!banniere) {
+      setApercuBanniere(null);
+      return undefined;
+    }
+    const url = URL.createObjectURL(banniere);
+    setApercuBanniere(url);
+    return () => URL.revokeObjectURL(url); // libère la mémoire quand l'image change
+  }, [banniere]);
+
+  // Mêmes règles que le serveur : type et taille
+  const choisirBanniere = (e) => {
+    const fichier = e.target.files?.[0];
+    if (!fichier) return;
+    let erreur;
+    if (!BANNIERE.types.includes(fichier.type)) erreur = 'Format refusé (JPEG, PNG ou WebP).';
+    else if (fichier.size > BANNIERE.tailleMax) erreur = 'Image trop lourde (2 Mo maximum).';
+    if (erreur) {
+      e.target.value = '';
+      setErrors((errs) => ({ ...errs, banniere: erreur }));
+      return;
+    }
+    setErrors((errs) => ({ ...errs, banniere: undefined }));
+    setBanniere(fichier);
+  };
 
   const set = (name, value) => {
     setForm((f) => ({ ...f, [name]: value }));
@@ -130,6 +159,14 @@ export default function Publier() {
     try {
       const { hackathon } = await api.publierHackathon(payload);
       localStorage.removeItem(BROUILLON_KEY);
+      if (banniere) {
+        try {
+          await api.envoyerBanniere(hackathon.id, banniere);
+        } catch (err) {
+          // Le hackathon est bien publié : on prévient seulement pour l'image
+          notify(`Hackathon publié, mais la bannière n’a pas pu être envoyée : ${err.message}`, 'error');
+        }
+      }
       notify('Ton hackathon est publié !');
       navigate(`/hackathons/${hackathon.id}`);
     } catch (err) {
@@ -153,6 +190,7 @@ export default function Publier() {
   const apercu = {
     id: 'apercu',
     ...payload,
+    banniere: apercuBanniere,
     statut: 'a-venir',
     inscrits: 0,
     placesRestantes: payload.places,
@@ -281,6 +319,31 @@ export default function Publier() {
                   <input id="tailleEquipeMax" name="tailleEquipeMax" type="number" min={1} max={10} className="input" value={form.tailleEquipeMax} onChange={update} />
                 </Field>
               </div>
+              <Field
+                label="Bannière (facultatif)"
+                id="banniere"
+                error={errors.banniere}
+                hint="JPEG, PNG ou WebP, 2 Mo maximum. Sans image, un visuel est généré selon le domaine."
+              >
+                <input
+                  id="banniere"
+                  name="banniere"
+                  type="file"
+                  accept={BANNIERE.types.join(',')}
+                  className="input file:mr-3 file:rounded-md file:border-0 file:bg-glace file:px-3 file:py-1 file:text-tech"
+                  onChange={choisirBanniere}
+                  aria-invalid={Boolean(errors.banniere)}
+                  aria-describedby={errors.banniere ? 'banniere-error' : undefined}
+                />
+              </Field>
+              {apercuBanniere && (
+                <div className="flex items-center gap-3">
+                  <img src={apercuBanniere} alt="Aperçu de la bannière" className="h-16 w-28 rounded-lg object-cover ring-1 ring-slate-200" />
+                  <button type="button" onClick={() => setBanniere(null)} className="btn btn-ghost px-3 text-sup">
+                    <Trash2 className="h-4 w-4" aria-hidden="true" /> Retirer
+                  </button>
+                </div>
+              )}
               <Field label="Règlement (facultatif)" id="reglement">
                 <textarea id="reglement" name="reglement" rows={5} className="input" value={form.reglement} onChange={update} placeholder="Conditions de participation, critères du jury…" />
               </Field>

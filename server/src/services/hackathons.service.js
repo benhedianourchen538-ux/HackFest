@@ -1,8 +1,10 @@
-// Règles métier des hackathons : liste, détail, publication, suppression, liste des inscrits.
+// Règles métier des hackathons : liste, détail, publication, bannière, suppression, liste des inscrits.
+import fs from 'node:fs/promises';
 import { prisma } from '../prisma.js';
 import { AVEC_INSCRITS, versDonneesHackathon, versHackathon, versInscription } from '../conversions.js';
 import { enrich, filterHackathons } from '../utils/hackathons.js';
 import { ErreurApi } from '../utils/erreurs.js';
+import { URL_BANNIERES, estVraieImage, supprimerBanniere } from '../utils/fichiers.js';
 
 /** Un hackathon enrichi (statut, places restantes), ou une erreur 404 */
 export async function trouver(id) {
@@ -54,10 +56,37 @@ export async function publier(donnees, utilisateur) {
   return trouver(cree.id);
 }
 
-/** Supprime un hackathon que l'on a publié, ou n'importe lequel pour un admin (inscriptions et équipes partent avec) */
-export async function supprimer(id, utilisateur) {
-  const hackathon = await prisma.hackathon.findUnique({ where: { id }, select: { creePar: true } });
+/** Vérifie que l'utilisateur peut modifier ce hackathon (auteur ou admin) : 404 / 403 sinon */
+export async function verifierGestion(id, utilisateur) {
+  const hackathon = await prisma.hackathon.findUnique({ where: { id }, select: { creePar: true, banniere: true } });
   if (!hackathon) throw new ErreurApi(404, 'Hackathon introuvable.');
   if (!peutGerer(hackathon.creePar, utilisateur)) throw new ErreurApi(403, 'Action non autorisée.');
+  return hackathon;
+}
+
+/** Supprime un hackathon que l'on a publié, ou n'importe lequel pour un admin (inscriptions, équipes et bannière partent avec) */
+export async function supprimer(id, utilisateur) {
+  const { banniere } = await verifierGestion(id, utilisateur);
   await prisma.hackathon.delete({ where: { id } });
+  await supprimerBanniere(banniere);
+}
+
+/**
+ * Enregistre la bannière reçue par Multer (req.file) et remplace l'ancienne.
+ * En cas de problème, le fichier reçu est supprimé : aucun fichier orphelin sur le disque.
+ */
+export async function changerBanniere(id, utilisateur, fichier) {
+  if (!fichier) throw new ErreurApi(400, 'Choisis une image.', { banniere: 'Choisis une image.' });
+  try {
+    if (!(await estVraieImage(fichier.path, fichier.mimetype))) {
+      throw new ErreurApi(400, 'Ce fichier n’est pas une vraie image JPEG, PNG ou WebP.', { banniere: 'Image illisible.' });
+    }
+    const { banniere: ancienne } = await verifierGestion(id, utilisateur);
+    await prisma.hackathon.update({ where: { id }, data: { banniere: `${URL_BANNIERES}/${fichier.filename}` } });
+    await supprimerBanniere(ancienne);
+  } catch (err) {
+    await fs.rm(fichier.path, { force: true });
+    throw err;
+  }
+  return trouver(id);
 }

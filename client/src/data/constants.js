@@ -51,6 +51,12 @@ export const TRIS = [
   { value: 'places', label: 'Places disponibles' },
 ];
 
+// Bannière d'un hackathon : mêmes limites que le serveur (server/src/utils/fichiers.js)
+export const BANNIERE = {
+  types: ['image/jpeg', 'image/png', 'image/webp'],
+  tailleMax: 2 * 1024 * 1024, // 2 Mo
+};
+
 export const labelOf = (list, value) => list.find((item) => item.value === value)?.label ?? value;
 export const domaineOf = (value) => DOMAINES.find((d) => d.value === value) ?? DOMAINES[0];
 export const statutOf = (value) => STATUTS.find((s) => s.value === value) ?? STATUTS[0];

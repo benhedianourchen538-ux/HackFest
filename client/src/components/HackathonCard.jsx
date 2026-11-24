@@ -11,7 +11,7 @@ export default function HackathonCard({ hackathon, inscrit = false }) {
   return (
     <article className="card group relative flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="relative">
-        <Cover domaine={hackathon.domaine} className="h-36" />
+        <Cover domaine={hackathon.domaine} banniere={hackathon.banniere} className="h-36" />
         <div className="absolute top-3 left-3 flex flex-wrap gap-2">
           <span className={`badge ${domaine.color}`}>{domaine.label}</span>
           {hackathon.statut !== 'a-venir' && <span className={`badge ${statut.color}`}>{statut.label}</span>}

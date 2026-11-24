@@ -8,6 +8,12 @@ export const tokenStorage = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
+/**
+ * Adresse complète d'une image servie par l'API ("/uploads/bannieres/x.webp" -> "http://localhost:5000/uploads/bannieres/x.webp").
+ * Une adresse déjà complète (aperçu local "blob:…") est renvoyée telle quelle.
+ */
+export const urlImage = (chemin) => new URL(chemin, API_URL).href;
+
 export class ApiError extends Error {
   constructor(message, status, errors = {}) {
     super(message);
@@ -24,13 +30,15 @@ async function request(path, { method = 'GET', body, params } = {}) {
     });
   }
 
-  const headers = { 'Content-Type': 'application/json' };
+  // Fichier (FormData) : le navigateur choisit lui-même l'en-tête multipart/form-data
+  const estFichier = body instanceof FormData;
+  const headers = estFichier ? {} : { 'Content-Type': 'application/json' };
   const token = tokenStorage.get();
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let response;
   try {
-    response = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+    response = await fetch(url, { method, headers, body: estFichier ? body : body ? JSON.stringify(body) : undefined });
   } catch {
     throw new ApiError('Impossible de joindre le serveur. Vérifie que l’API est lancée.', 0);
   }
@@ -54,6 +62,11 @@ export const api = {
   getInscrits: (id) => request(`/hackathons/${id}/inscrits`),
   publierHackathon: (payload) => request('/hackathons', { method: 'POST', body: payload }),
   supprimerHackathon: (id) => request(`/hackathons/${id}`, { method: 'DELETE' }),
+  envoyerBanniere: (id, fichier) => {
+    const donnees = new FormData();
+    donnees.append('banniere', fichier);
+    return request(`/hackathons/${id}/banniere`, { method: 'PUT', body: donnees });
+  },
 
   // Inscriptions
   sInscrire: (id, payload) => request(`/hackathons/${id}/inscriptions`, { method: 'POST', body: payload }),

@@ -38,6 +38,7 @@ export function versHackathon(h) {
     reglement: h.reglement,
     lien: h.lien,
     source: h.source,
+    banniere: h.banniere ?? null, // null : le site affiche le visuel généré
     createdBy: h.creePar,
     createdAt: h.creeLe.toISOString(),
     inscrits: h._count?.inscriptions ?? 0,

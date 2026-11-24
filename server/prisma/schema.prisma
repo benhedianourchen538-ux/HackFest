@@ -57,6 +57,7 @@ model Hackathon {
   reglement        String    @default("")
   lien             String? // page officielle de l'événement
   source           String? // d'où vient l'information
+  banniere         String? // image envoyée par l'organisateur, ex. "/uploads/bannieres/<uuid>.webp"
   creePar          String?   @map("cree_par")
   creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(6)
 
