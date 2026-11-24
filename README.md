@@ -3,7 +3,9 @@
 **Projet Web · Objectif 3 : développement et intégration des fonctionnalités principales**
 Projet : **HackFest** · Membres : **Nourchen Benhdia**, **Lina Sidhom**
 
-HackFest réunit les hackathons étudiants de Tunisie sur une seule plateforme. Un visiteur peut **consulter et filtrer** les hackathons ; une fois connecté, il peut **s’inscrire** (en solo ou en équipe), retrouver **ses événements à venir** et **publier ses propres hackathons**.
+HackFest réunit les hackathons étudiants de Tunisie sur une seule plateforme. Un visiteur peut **consulter et filtrer** les hackathons ; un **participant** peut **s’inscrire** (en solo ou en équipe) et retrouver **ses événements** ; un **organisateur** peut en plus **publier ses hackathons** (avec une bannière) et suivre leurs inscrits.
+
+Le site (React) ne parle **qu’à notre API Express**. Toute la logique (comptes, droits, règles d’inscription, fichiers) est dans notre backend Node.js ; Supabase sert uniquement à héberger la base PostgreSQL.
 
 ---
 
@@ -11,145 +13,210 @@ HackFest réunit les hackathons étudiants de Tunisie sur une seule plateforme. 
 
 | Couche | Technologies | Pourquoi |
 |---|---|---|
-| Structure & style | HTML5, CSS3, JavaScript + **Tailwind CSS 4** | Langages déjà maîtrisés. Tailwind applique la palette du projet (Navy `#123B63`, Bleu Tech `#1769AA`, Rouge SUP’COM `#D92735`…) sous forme de classes réutilisables (`bg-navy`, `text-sup`…). |
-| Frontend | **React 18 + Vite**, React Router 6 | React est connu de l’équipe (même logique qu’Expo). Vite remplace `create-react-app`, qui n’est plus maintenu : démarrage et rechargement beaucoup plus rapides. |
-| Gestion d’état | React Hooks (`useState`, `useEffect`) + Context API | Suffisant pour ce projet : `AuthContext` (utilisateur connecté) et `ToastContext` (notifications). Pas besoin de Redux. |
-| Backend | **Node.js + Express** (API REST) | Le même langage (JavaScript) côté client et côté serveur. |
-| Données | **PostgreSQL** : **Supabase** en ligne, ou **PGlite** (PostgreSQL intégré) en local, avec le pilote `pg` | Vraie base relationnelle (tables, clés étrangères, contraintes). Le même schéma (`server/db/schema.sql`) sert en local et sur Supabase : sans configuration, le projet se lance quand même. |
-| Authentification | **JWT** (`jsonwebtoken`) + mots de passe hachés (`bcryptjs`) | Connexion sécurisée sans service externe, donc le projet se lance sans configuration. Prévu ensuite : Supabase Auth. |
-| Icônes / polices | lucide-react, Poppins (titres) et Inter (texte) | Icônes légères ; polices de la charte graphique. |
+| Structure & style | HTML5, CSS3, JavaScript + **Tailwind CSS 4** | La palette du projet (Navy `#123B63`, Bleu Tech `#1769AA`, Rouge SUP’COM `#D92735`…) devient des classes réutilisables (`bg-navy`, `text-sup`…). |
+| Frontend | **React 18 + Vite**, React Router 6 | Démarrage et rechargement rapides ; `create-react-app` n’est plus maintenu. |
+| État côté client | Hooks + Context API | `AuthContext` (utilisateur connecté et son rôle) et `ToastContext` (notifications). |
+| Backend | **Node.js + Express**, architecture **routes → controllers → services** | Même langage des deux côtés. Chaque couche a un seul rôle (voir § 4). |
+| Base de données | **PostgreSQL** (hébergé sur **Supabase**) + **Prisma** (ORM et migrations) | Vraie base relationnelle (clés étrangères, contraintes). Prisma décrit la base dans un seul fichier et versionne chaque changement de structure (migrations). |
+| Authentification | **Maison** : `bcryptjs` (mots de passe hachés) + **JWT** (`jsonwebtoken`) + **rôles** | Aucun service externe : on maîtrise et on peut expliquer tout le fonctionnement. |
+| Validation | **Zod** | Toutes les données reçues (corps, filtres, identifiants) sont vérifiées et nettoyées avant d’arriver au code métier. |
+| Fichiers | **Multer** | Réception des bannières (2 Mo, JPEG/PNG/WebP). |
+| Sécurité | **helmet**, **cors**, **express-rate-limit** | En-têtes de sécurité, API réservée à notre site, limite de requêtes et de tentatives de connexion. |
+| Tests | **Jest** + **Supertest** | 55 tests automatiques de l’API sur une base de test séparée. |
+| Icônes / polices | lucide-react, Poppins (titres) et Inter (texte) | Charte graphique du projet. |
 
-## 2. Fonctionnalités développées
+## 2. Fonctionnalités
 
 **Pages publiques (sans compte)**
-- **Accueil** : hero, chiffres clés, 3 prochains hackathons, accès par domaine, « Comment ça marche », **Qui sommes-nous**, **FAQ** en accordéon, **formulaire de contact** (validé puis enregistré par l’API).
-- **Hackathons** : liste complète avec
-  - recherche texte (titre, organisateur, ville, sans tenir compte des accents) ;
-  - filtres **Organisé par** (université / club / organisation), **Région**, **Domaine** (Tech & IA, environnement, santé…), **Statut** et **Format** ;
-  - tri (date, ajout récent, places) et filtres actifs affichés en « chips » supprimables ;
-  - filtres enregistrés dans l’URL (on peut partager un lien filtré) ;
-  - panneau de filtres plein écran sur mobile, et un message quand aucun résultat ne correspond.
-- **Détail d’un hackathon** : présentation, programme, prix, règlement, places restantes (barre de progression) et une carte d’inscription qui reste visible. Sans compte, le bouton devient « Connecte-toi pour t’inscrire » et ramène sur la page après la connexion.
-- **Connexion / Création de compte** : onglets, validation des champs, affichage du mot de passe, compte de démonstration.
+- **Accueil** : hero, chiffres clés, prochains hackathons, accès par domaine, « Comment ça marche », **Qui sommes-nous**, **FAQ**, **formulaire de contact**.
+- **Hackathons** : recherche texte (sans tenir compte des accents), filtres **Organisé par**, **Région**, **Domaine**, **Statut**, **Format**, tri, filtres en « chips », filtres enregistrés dans l’URL, panneau plein écran sur mobile.
+- **Détail d’un hackathon** : bannière, présentation, programme, prix, règlement, places restantes. Sans compte, le bouton ramène sur la page après la connexion.
+- **Connexion / Création de compte** : choix du **type de compte** (participant ou organisateur), validation des champs, compte de démonstration.
 
-**Pages réservées aux utilisateurs connectés**
-- **Inscription à un hackathon** en 3 étapes : informations → participation (solo, **créer une équipe** avec un code à partager, **rejoindre une équipe** avec un code) → confirmation avec acceptation du règlement.
-- **Mes événements** : onglets À venir / Passés, compte à rebours, équipe et coéquipiers, annulation de l’inscription.
-- **Publier un hackathon** en 5 étapes (infos → dates & lieu → programme & prix → règlement → aperçu), **brouillon** enregistré dans le navigateur, validation côté client et côté serveur.
-- **Mes publications** : nombre d’inscrits, liste des inscrits, **export CSV**, suppression.
+**Participants (et organisateurs)**
+- **Inscription à un hackathon** en 3 étapes : solo, **créer une équipe** (code `HF-XXXXX` à partager) ou **rejoindre une équipe** avec son code.
+- **Mes événements** : à venir / passés, compte à rebours, coéquipiers, annulation.
 
-**Transversal**
-- Barre de navigation différente pour un visiteur et pour un utilisateur connecté, menu mobile, routes protégées.
-- Notifications (toasts) de succès et d’erreur, états de chargement, page 404.
-- Responsive (mobile, tablette, ordinateur) et accessibilité : balises sémantiques, labels, `aria-*`, focus visible, lien « Aller au contenu », contrastes de la palette.
+**Organisateurs (et admins)**
+- **Publier un hackathon** en 5 étapes avec **bannière** facultative (aperçu avant envoi), brouillon dans le navigateur.
+- **Mes publications** : inscrits (avec leur équipe), **export CSV**, suppression.
+- Un participant qui ouvre ces pages voit une explication ; l’API refuse de toute façon (403).
+
+**Transversal** : navigation adaptée au rôle, menu mobile, toasts, états de chargement, page 404, responsive (390 px → 1440 px), accessibilité (labels, `aria-*`, focus visible, contrastes).
 
 ## 3. Lancer le projet
 
-Prérequis : **Node.js 18.18 ou plus récent** (`node -v`) et npm.
+Prérequis : **Node.js 20.11 ou plus récent** (`node -v`), npm, et une base **PostgreSQL** (Supabase, gratuit).
+
+### 3.1 Configurer la base (une seule fois)
+
+1. Sur [supabase.com](https://supabase.com) : ouvrir le projet de l’équipe (ou **New project**, plan Free, et **noter le mot de passe de la base**).
+2. Bouton **Connect** → **Session pooler** → copier l’URI.
+3. Copier `server/.env.example` en `server/.env` et remplir au minimum `DATABASE_URL`, `DATABASE_URL_TEST` et `JWT_SECRET` (voir § 3.3).
+4. Créer les tables et les données de départ :
+   ```bash
+   cd server
+   npm install          # installe aussi le client Prisma (prisma generate)
+   npm run db:migrate   # applique les migrations (prisma/migrations)
+   npm run db:seed      # compte démo + hackathons de data/seed.json
+   ```
+
+> **Projet Supabase en pause ?** Un projet gratuit se met en pause après ~7 jours sans activité (erreur `tenant/user … not found`). Dashboard Supabase → le projet → **Resume project**, puis attendre 2 à 5 minutes. Pensez-y avant une démonstration.
+
+### 3.2 Démarrer
 
 **Terminal 1 : l’API**
 ```bash
 cd server
-npm install
-npm run dev          # API sur http://localhost:5000/api
+npm run dev          # http://localhost:5000/api
 ```
 
 **Terminal 2 : le site**
 ```bash
 cd client
 npm install
-npm run dev          # site sur http://localhost:5173
+npm run dev          # http://localhost:5173
 ```
 
-**Compte de démonstration :** `demo@hackfest.tn` / `demo1234` (ou crée ton propre compte).
+**Compte de démonstration :** `demo@hackfest.tn` / `demo1234` (organisateur : il peut tout tester).
 
-Sans configuration, l’API utilise une base PostgreSQL locale (`server/data/pglite`), créée et remplie automatiquement au premier lancement.
+### 3.3 Variables d’environnement
 
-### Brancher la base Supabase
-1. Créer un compte sur [supabase.com](https://supabase.com), puis **New project** (région *Central EU (Frankfurt)*, plan Free). **Noter le mot de passe de la base.**
-2. Dans le projet : bouton **Connect** → **Connection string** → **Session pooler** → copier l’URI.
-3. Copier `server/.env.example` en `server/.env` et remplir :
-   ```
-   DATABASE_URL=postgresql://postgres.xxxx:MOT_DE_PASSE@aws-0-eu-central-1.pooler.supabase.com:5432/postgres
-   JWT_SECRET=une-longue-chaine-aleatoire
-   ```
-4. Relancer `npm run dev` dans `server/` : les tables sont créées et les hackathons insérés automatiquement. Le terminal affiche `base : Supabase`.
+`server/.env` (jamais versionné, chacun crée le sien à partir de `server/.env.example`) :
 
-`server/.env` n’est jamais versionné (`.gitignore`) : chaque membre de l’équipe crée le sien. Les tables ont la sécurité RLS activée, donc l’API REST publique de Supabase ne peut pas les lire ; seule notre API Express y accède.
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `DATABASE_URL` | oui | Adresse PostgreSQL utilisée par Prisma (Supabase : « Session pooler », port 5432). |
+| `DATABASE_URL_TEST` | pour `npm test` | **Même adresse** avec `?schema=test` à la fin : les tests travaillent dans un schéma séparé et ne touchent jamais aux vraies données. |
+| `JWT_SECRET` | oui (en production, l’API refuse de démarrer sans) | Longue chaîne aléatoire qui signe les jetons de connexion. |
+| `CLIENT_URL` | non (`http://localhost:5173`) | Adresse(s) du site autorisée(s) par CORS, séparées par des virgules. |
+| `PORT` | non (`5000`) | Port de l’API. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | non | Si remplis, `npm run db:seed` crée (ou promeut) ce compte **admin**. |
+| `LIMITE_REQUETES` | non (`300`) | Requêtes max par adresse IP en 15 minutes. |
+| `TRUST_PROXY` | non | `1` si l’API est hébergée derrière un proxy (Render, Railway…), pour lire la vraie IP des visiteurs. |
 
-Commandes utiles :
-- `npm run sync-seed` (dans `server/`) ajoute ou met à jour dans la base les hackathons de `data/seed.json`, **sans rien supprimer**. À lancer après avoir complété des informations dans ce fichier.
-- `npm run reset-db` (dans `server/`) supprime **toutes** les données (comptes, inscriptions) et remet les hackathons de `data/seed.json`. Sur Supabase si `DATABASE_URL` est défini.
-- `npm run build` (dans `client/`) crée la version de production dans `client/dist`.
-- Pour changer l’adresse de l’API, copie `client/.env.example` en `client/.env`.
+`client/.env` (facultatif, voir `client/.env.example`) : `VITE_API_URL` (par défaut `http://localhost:5000/api`).
+
+### 3.4 Commandes utiles
+
+| Dans | Commande | Effet |
+|---|---|---|
+| `server/` | `npm run dev` | API avec redémarrage automatique. |
+| `server/` | `npm test` | Lance les 55 tests automatiques (base de test). |
+| `server/` | `npm run db:migrate` | Applique les nouvelles migrations. |
+| `server/` | `npm run db:seed` | Ajoute ou met à jour le compte démo et les hackathons de `data/seed.json`, **sans rien supprimer**. |
+| `server/` | `npm run reset-db` | ⚠️ Supprime **toutes** les données (comptes, inscriptions, publications) puis relance le seed. |
+| `server/` | `npx prisma migrate dev --name <nom>` | Après une modification de `prisma/schema.prisma` : crée la migration SQL correspondante. |
+| `server/` | `npx prisma studio` | Interface web pour consulter la base. |
+| `client/` | `npm run build` | Version de production dans `client/dist` (doit passer avant chaque Pull Request). |
 
 ## 4. Organisation du code
 
 ```
 hackfest/
-├── client/                      # Frontend React + Vite
-│   ├── index.html
+├── client/                         # Frontend React + Vite
 │   └── src/
-│       ├── main.jsx             # Point d'entrée (Router + contextes)
-│       ├── App.jsx              # Déclaration des routes
-│       ├── index.css            # Tailwind + palette + composants CSS (.btn, .card…)
-│       ├── components/          # Composants réutilisables
-│       │   ├── layout/          # Navbar, Footer, Layout
-│       │   ├── HackathonCard.jsx, Cover.jsx, ProtectedRoute.jsx
-│       │   └── ui.jsx           # Spinner, Stepper, Field, EmptyState…
-│       ├── context/             # AuthContext, ToastContext
-│       ├── pages/               # Une page = un fichier
-│       ├── services/api.js      # Tous les appels à l'API
-│       ├── data/constants.js    # Domaines, régions, types d'organisateurs
-│       └── utils/format.js      # Dates en français, règles d'inscription
-└── server/                      # API Node.js + Express
-    ├── .env.example             # Modèle de configuration (DATABASE_URL Supabase, JWT_SECRET)
-    ├── db/schema.sql            # Tables PostgreSQL (utilisateurs, hackathons, inscriptions, messages)
-    ├── data/seed.json           # Vrais hackathons insérés au premier lancement
+│       ├── App.jsx                 # Routes (ProtectedRoute + rôles)
+│       ├── components/             # Navbar, Footer, HackathonCard, Cover (bannière), ui.jsx…
+│       ├── context/                # AuthContext, ToastContext
+│       ├── pages/                  # Une page = un fichier
+│       ├── services/api.js         # TOUS les appels à l'API (JSON et fichiers)
+│       ├── data/constants.js       # Domaines, régions, rôles, limites de la bannière
+│       └── utils/format.js         # Dates en français
+└── server/                         # API Node.js + Express
+    ├── prisma/
+    │   ├── schema.prisma           # Modèles : Utilisateur, Hackathon, Equipe, Inscription, Message
+    │   ├── migrations/             # Historique SQL de la structure de la base
+    │   └── seed.js                 # npm run db:seed
+    ├── data/seed.json              # Vrais hackathons
+    ├── uploads/bannieres/          # Images envoyées (non versionné)
+    ├── tests/                      # Jest + Supertest
     └── src/
-        ├── index.js             # Création du serveur
-        ├── env.js               # Chargement de server/.env
-        ├── db.js                # Connexion PostgreSQL (Supabase ou PGlite local), conversion des lignes
-        ├── middleware/auth.js   # Vérification du jeton JWT
-        ├── routes/              # auth, hackathons, inscriptions, contact
-        └── utils/hackathons.js  # Filtres, tri, statut (fonctions pures)
+        ├── index.js                # Démarrage (connexion base + écoute du port)
+        ├── app.js                  # Application Express : sécurité, routes, erreurs
+        ├── routes/                 # URL -> middlewares -> controller
+        ├── controllers/            # Lit la requête, appelle le service, répond
+        ├── services/               # Règles métier + Prisma (lancent des ErreurApi)
+        ├── validators/             # Schémas Zod
+        ├── middlewares/            # auth (requireAuth, requireRole), valider, upload, limites, erreurs
+        ├── utils/                  # ErreurApi, fichiers, filtres/tri des hackathons
+        ├── prisma.js               # Client Prisma unique
+        └── conversions.js          # Objets Prisma -> JSON envoyé au client
 ```
 
-Conventions : composants et pages en `PascalCase.jsx`, fonctions et variables en `camelCase`, noms métier en français (`inscription`, `hackathon`, `organisateur`).
+**Le trajet d’une requête**, par exemple `POST /api/hackathons` :
+`helmet` → `cors` → limite de requêtes → `requireAuth` (jeton valide ?) → `requireRole('organisateur', 'admin')` → `valider(schemaHackathon)` (Zod) → **controller** → **service** (Prisma) → réponse JSON. Si une étape échoue, l’erreur part vers le **gestionnaire d’erreurs unique**, qui répond toujours `{ message, errors? }`.
 
 ## 5. API REST
 
-| Méthode | Route | Accès | Rôle |
+Rôles : **public** (sans compte), **connecté** (tout compte), **organisateur** (organisateur ou admin), **auteur** (celui qui a publié le hackathon, ou un admin).
+
+| Méthode | Route | Accès | Rôle de la route |
 |---|---|---|---|
-| POST | `/api/auth/register` | public | Créer un compte |
-| POST | `/api/auth/login` | public | Se connecter (renvoie un jeton) |
-| GET | `/api/auth/me` | connecté | Utilisateur courant |
+| GET | `/api/health` | public | L’API répond-elle ? |
+| GET | `/api/meta` | public | Valeurs autorisées (domaines, régions…) |
+| POST | `/api/auth/register` | public | Créer un compte `{ nom, email, password, universite?, role? }` (`participant` par défaut ou `organisateur`) |
+| POST | `/api/auth/login` | public | Se connecter (5 échecs max / 15 min) → `{ token, user }` |
+| GET | `/api/auth/me` | connecté | Utilisateur courant (avec son rôle) |
 | GET | `/api/hackathons?q=&organisateur=&region=&domaine=&statut=&format=&tri=` | public | Liste filtrée (plusieurs valeurs séparées par des virgules) |
 | GET | `/api/hackathons/:id` | public | Détail |
-| POST | `/api/hackathons` | connecté | Publier |
+| POST | `/api/hackathons` | organisateur | Publier |
+| PUT | `/api/hackathons/:id/banniere` | auteur | Envoyer / remplacer la bannière (`multipart/form-data`, champ `banniere`) |
 | GET | `/api/hackathons/mine` | connecté | Mes publications |
-| GET | `/api/hackathons/:id/inscrits` | organisateur | Liste des inscrits |
-| DELETE | `/api/hackathons/:id` | organisateur | Supprimer |
-| POST | `/api/hackathons/:id/inscriptions` | connecté | S’inscrire (`solo`, `creer`, `rejoindre`) |
-| GET | `/api/inscriptions/me` | connecté | Mes événements |
-| DELETE | `/api/inscriptions/:id` | connecté | Annuler une inscription |
+| GET | `/api/hackathons/:id/inscrits` | auteur | Liste des inscrits |
+| DELETE | `/api/hackathons/:id` | auteur | Supprimer (inscriptions, équipes et bannière avec) |
+| POST | `/api/hackathons/:id/inscriptions` | connecté | S’inscrire `{ mode: solo \| creer \| rejoindre, nomEquipe?, codeEquipe?, motivation? }` |
+| GET | `/api/inscriptions/me` | connecté | Mes événements (avec les membres de l’équipe) |
+| DELETE | `/api/inscriptions/:id` | connecté (la sienne) | Annuler une inscription |
 | POST | `/api/contact` | public | Formulaire de contact |
+| GET | `/uploads/bannieres/<fichier>` | public | Images des bannières |
 
-Règles vérifiées par le serveur : pas de double inscription (aussi garanti par une contrainte `unique` en base), places limitées, inscriptions fermées après la date limite, taille maximale des équipes, seul l’organisateur voit ses inscrits. Une date limite ou un nombre de places à `null` signifie « non communiqué » : le site affiche « À confirmer » et ce critère ne bloque pas l’inscription.
+**Authentification :** en-tête `Authorization: Bearer <jeton>` (valable 7 jours).
 
-## 6. Travail en équipe
+**Erreurs :** toujours `{ "message": "…", "errors": { "champ": "…" } }` (`errors` seulement pour un formulaire).
+`400` données invalides · `401` non connecté / jeton invalide · `403` rôle ou droits insuffisants · `404` introuvable · `409` déjà existant (e-mail, double inscription) · `413` fichier ou données trop gros · `429` trop de requêtes · `500` erreur serveur (message neutre, détail dans le terminal).
 
-- **Git :** une branche par fonctionnalité (`feature/filtres-hackathons`, `feature/auth`, `feature/publier`…), fusion dans `main` par Pull Request relue par un coéquipier. Commits clairs : `feat: ajout du filtre par région`, `fix: date limite d'inscription`.
-- **Suivi des tâches :** GitHub Projects (colonnes À faire / En cours / En revue / Terminé).
-- **Répartition suggérée :** (1) mise en page, Accueil, palette ; (2) liste, filtres, détail ; (3) API, authentification, inscriptions ; (4) publication, mes publications, tests.
+**Règles métier vérifiées par le serveur :** pas de double inscription (aussi garanti par une contrainte `unique`), places limitées, inscriptions fermées après la date limite ou une fois le hackathon commencé, taille maximale des équipes, code d’équipe valable seulement pour son hackathon. Une date limite ou un nombre de places à `null` signifie « non communiqué » : le site affiche « À confirmer » et ce critère ne bloque pas.
 
-## 7. Tests effectués
+## 6. Sécurité
 
-- **API :** tous les endpoints testés (inscription, connexion, filtres combinés, inscription solo/équipe, double inscription refusée, hackathon terminé refusé, publication valide et invalide, droits d’accès 401/403, routes inconnues 404).
-- **Interface, à vérifier sur Chrome, Firefox, Edge et Safari :** navigation, menu mobile, filtres, formulaires (messages d’erreur), redirection après connexion, responsive en 390 px / 768 px / 1440 px.
+| Risque | Protection |
+|---|---|
+| Vol de la base | Mots de passe **hachés avec bcrypt** (jamais stockés en clair, jamais renvoyés). RLS activé sur toutes les tables : l’API publique de Supabase ne peut rien lire. |
+| Faux jeton | Jeton **JWT signé** avec `JWT_SECRET` ; le rôle est relu en base à chaque requête. |
+| Accès interdit | `requireAuth`, `requireRole` et vérification de l’auteur dans les services (401 / 403). |
+| Données piégées | **Zod** sur toutes les entrées ; champs inconnus ignorés (impossible de forcer un auteur ou un id) ; requêtes Prisma paramétrées (pas d’injection SQL). |
+| Essais de mots de passe en boucle | 5 échecs max en 15 min par IP et e-mail (`express-rate-limit`). |
+| Robots / saturation | 300 requêtes max en 15 min par IP sur toute l’API ; corps JSON limité à 1 Mo. |
+| Fichiers dangereux | Multer : 1 fichier, 2 Mo, JPEG/PNG/WebP, **signature du fichier vérifiée**, nom aléatoire, droits vérifiés **avant** la réception. |
+| Autres sites | **CORS** limité à `CLIENT_URL` ; **helmet** (nosniff, anti-iframe, HSTS, pas de `X-Powered-By`). |
 
-## 8. Prochaines étapes
+## 7. Tests
 
-1. ~~Remplacer le fichier JSON par PostgreSQL (Supabase)~~ : fait. Compléter les informations des vrais hackathons (places, dates limites, prix) dans `server/data/seed.json` ou directement dans Supabase.
-2. Passer l’authentification sur **Supabase Auth** (vérification d’e-mail, mot de passe oublié, connexion Google).
-3. Ajouter l’envoi d’images (bannières) avec Supabase Storage, puis déployer (Vercel pour le site, Render pour l’API).
+```bash
+cd server
+npm test
+```
+
+55 tests **Jest + Supertest** (environ 45 s, la base est en ligne) :
+- `tests/auth.test.js` : création de compte, rôles (admin refusé), bcrypt, connexion, message identique que le compte existe ou non, blocage après 5 échecs, jeton absent / falsifié, rôle relu en base.
+- `tests/hackathons.test.js` : liste, filtres, recherche sans accents, détail, publication (rôles, erreurs Zod, dates incohérentes, nettoyage), suppression (auteur / autre / admin), inscrits, bannière (vraie image, faux PNG, GIF, > 2 Mo, autre organisateur), JSON mal formé, 404, helmet.
+- `tests/inscriptions.test.js` : solo, double inscription, places, date limite, équipes (créer, rejoindre, complète, code d’un autre hackathon), « Mes événements », annulation, suppression de l’équipe vide, cascade.
+
+Les tests utilisent `DATABASE_URL_TEST` (schéma `test`) : les migrations y sont appliquées automatiquement, et un garde-fou **refuse de lancer les tests** sur le schéma `public`.
+
+**Interface :** parcours vérifié dans Edge en **390 px et 1440 px** (visiteur, participant, organisateur : inscription, équipe, publication avec bannière, inscrits, suppression), sans erreur ni avertissement dans la console.
+
+## 8. Travail en équipe
+
+- **Git :** une branche par fonctionnalité (`feature/backend-prisma`, `fix/date-limite-inscription`…), fusion dans `main` par Pull Request relue par un coéquipier. Commits : `feat: …`, `fix: …`, `test: …`, `docs: …`.
+- **Avant chaque Pull Request :** `npm test` (server) et `npm run build` (client) passent ; test visiteur et connecté en 390 px et 1440 px.
+- **Une modification de la base** = modifier `prisma/schema.prisma` puis `npx prisma migrate dev --name <nom>`, et commiter le dossier de migration créé.
+
+## 9. Prochaines étapes
+
+1. Compléter les informations des vrais hackathons (places, dates limites, prix) dans `server/data/seed.json`, puis `npm run db:seed`.
+2. Permettre de changer la bannière depuis « Mes publications » (la route `PUT /api/hackathons/:id/banniere` existe déjà).
+3. Mot de passe oublié (lien envoyé par e-mail, géré par notre API) et vérification de l’adresse e-mail.
+4. Page d’administration (modération des hackathons, gestion des rôles).
+5. Déploiement : site sur Vercel, API sur Render (`TRUST_PROXY=1`, `CLIENT_URL` = adresse du site) ; stocker les bannières sur un service de fichiers plutôt que sur le disque du serveur.
