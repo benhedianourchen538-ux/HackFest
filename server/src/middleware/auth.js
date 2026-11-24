@@ -1,16 +1,11 @@
 import jwt from 'jsonwebtoken';
-import { requete, versUtilisateur } from '../db.js';
+import { prisma } from '../prisma.js';
+import { versUtilisateur } from '../conversions.js';
 
 export const JWT_SECRET = process.env.JWT_SECRET || 'hackfest-dev-secret-a-changer';
 
 export function createToken(user) {
   return jwt.sign({ sub: user.id }, JWT_SECRET, { expiresIn: '7d' });
-}
-
-/** Retire les champs sensibles avant d'envoyer un utilisateur au client */
-export function publicUser(user) {
-  const { passwordHash, ...rest } = user;
-  return rest;
 }
 
 /** Permet d'utiliser des fonctions async dans les routes Express 4 (les erreurs vont au gestionnaire 500) */
@@ -28,8 +23,8 @@ export const requireAuth = asyncRoute(async (req, res, next) => {
   } catch {
     return res.status(401).json({ message: 'Session expirée, reconnecte-toi.' });
   }
-  const [ligne] = await requete('select * from utilisateurs where id = $1', [payload.sub]);
-  if (!ligne) return res.status(401).json({ message: 'Utilisateur introuvable.' });
-  req.user = versUtilisateur(ligne);
+  const utilisateur = await prisma.utilisateur.findUnique({ where: { id: payload.sub } });
+  if (!utilisateur) return res.status(401).json({ message: 'Utilisateur introuvable.' });
+  req.user = versUtilisateur(utilisateur);
   return next();
 });

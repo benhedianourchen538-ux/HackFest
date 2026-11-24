@@ -1,0 +1,113 @@
+// Schéma de la base HackFest (PostgreSQL), lu par Prisma.
+// - Les modèles et champs sont en camelCase dans le code (prisma.hackathon.findMany()…).
+// - @map / @@map donnent le vrai nom en base : tables et colonnes en français, snake_case.
+// - Un changement de structure = une nouvelle migration : npx prisma migrate dev --name <nom>
+// Les contraintes CHECK (format, dates…) et RLS ne s'écrivent pas ici : elles sont dans les migrations SQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Rôle d'un compte : un participant s'inscrit, un organisateur publie aussi, un admin peut tout modérer.
+enum Role {
+  participant
+  organisateur
+  admin
+
+  @@map("role_utilisateur")
+}
+
+model Utilisateur {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  nom            String
+  email          String   @unique
+  universite     String   @default("")
+  motDePasseHash String   @map("mot_de_passe_hash")
+  role           Role     @default(participant)
+  creeLe         DateTime @default(now()) @map("cree_le") @db.Timestamptz(6)
+
+  hackathons   Hackathon[]
+  inscriptions Inscription[]
+
+  @@map("utilisateurs")
+}
+
+model Hackathon {
+  id               String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  titre            String
+  description      String
+  organisateurNom  String    @map("organisateur_nom")
+  organisateurType String    @map("organisateur_type") // universite | club | organisation
+  domaine          String
+  region           String
+  format           String // presentiel | en-ligne
+  lieu             String
+  dateDebut        DateTime  @map("date_debut") @db.Date
+  dateFin          DateTime  @map("date_fin") @db.Date
+  dateLimite       DateTime? @map("date_limite") @db.Date // null : non communiquée
+  places           Int? // null : non communiqué
+  tailleEquipeMax  Int?      @map("taille_equipe_max") // null : non communiquée
+  prix             Json      @default("[]")
+  programme        Json      @default("[]")
+  reglement        String    @default("")
+  lien             String? // page officielle de l'événement
+  source           String? // d'où vient l'information
+  creePar          String?   @map("cree_par")
+  creeLe           DateTime  @default(now()) @map("cree_le") @db.Timestamptz(6)
+
+  createur     Utilisateur?  @relation(fields: [creePar], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  inscriptions Inscription[]
+  equipes      Equipe[]
+
+  @@index([creePar], map: "hackathons_cree_par_idx")
+  @@map("hackathons")
+}
+
+/// Une équipe appartient à un hackathon ; ses membres sont les inscriptions qui la référencent.
+model Equipe {
+  id          String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  hackathonId String   @map("hackathon_id")
+  nom         String
+  code        String   @unique // ex. "HF-7K2Q9", partagé aux coéquipiers
+  creeLe      DateTime @default(now()) @map("cree_le") @db.Timestamptz(6)
+
+  hackathon Hackathon     @relation(fields: [hackathonId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  membres   Inscription[]
+
+  @@map("equipes")
+}
+
+model Inscription {
+  id            String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  utilisateurId String   @map("utilisateur_id")
+  hackathonId   String   @map("hackathon_id")
+  mode          String // solo | creer | rejoindre
+  equipeId      String?  @map("equipe_id")
+  motivation    String   @default("")
+  statut        String   @default("confirme")
+  creeLe        DateTime @default(now()) @map("cree_le") @db.Timestamptz(6)
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  hackathon   Hackathon   @relation(fields: [hackathonId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  equipe      Equipe?     @relation(fields: [equipeId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@unique([hackathonId, utilisateurId]) // pas de double inscription
+  @@index([equipeId], map: "inscriptions_equipe_idx")
+  @@map("inscriptions")
+}
+
+/// Messages du formulaire de contact
+model Message {
+  id      String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  nom     String
+  email   String
+  message String
+  creeLe  DateTime @default(now()) @map("cree_le") @db.Timestamptz(6)
+
+  @@map("messages")
+}

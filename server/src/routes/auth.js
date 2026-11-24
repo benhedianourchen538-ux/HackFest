@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { requete, versUtilisateur } from '../db.js';
-import { asyncRoute, createToken, publicUser, requireAuth } from '../middleware/auth.js';
+import { prisma } from '../prisma.js';
+import { versUtilisateur } from '../conversions.js';
+import { asyncRoute, createToken, requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,17 +19,14 @@ router.post(
     if (Object.keys(errors).length) return res.status(400).json({ message: 'Formulaire invalide.', errors });
 
     const emailNormalise = email.trim().toLowerCase();
-    const existe = await requete('select 1 from utilisateurs where email = $1', [emailNormalise]);
-    if (existe.length) {
+    if (await prisma.utilisateur.findUnique({ where: { email: emailNormalise } })) {
       return res.status(409).json({ message: 'Un compte existe déjà avec cet e-mail.', errors: { email: 'E-mail déjà utilisé.' } });
     }
 
-    const [ligne] = await requete(
-      `insert into utilisateurs (nom, email, universite, mot_de_passe_hash) values ($1, $2, $3, $4) returning *`,
-      [nom.trim(), emailNormalise, (universite || '').trim(), await bcrypt.hash(password, 10)],
-    );
-    const user = versUtilisateur(ligne);
-    return res.status(201).json({ token: createToken(user), user: publicUser(user) });
+    const utilisateur = await prisma.utilisateur.create({
+      data: { nom: nom.trim(), email: emailNormalise, universite: (universite || '').trim(), motDePasseHash: await bcrypt.hash(password, 10) },
+    });
+    return res.status(201).json({ token: createToken(utilisateur), user: versUtilisateur(utilisateur) });
   }),
 );
 
@@ -39,18 +37,17 @@ router.post(
     const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ message: 'E-mail et mot de passe requis.' });
 
-    const [ligne] = await requete('select * from utilisateurs where email = $1', [String(email).trim().toLowerCase()]);
-    const ok = ligne && (await bcrypt.compare(String(password), ligne.mot_de_passe_hash));
+    const utilisateur = await prisma.utilisateur.findUnique({ where: { email: String(email).trim().toLowerCase() } });
+    const ok = utilisateur && (await bcrypt.compare(String(password), utilisateur.motDePasseHash));
     if (!ok) return res.status(401).json({ message: 'E-mail ou mot de passe incorrect.' });
 
-    const user = versUtilisateur(ligne);
-    return res.json({ token: createToken(user), user: publicUser(user) });
+    return res.json({ token: createToken(utilisateur), user: versUtilisateur(utilisateur) });
   }),
 );
 
 // GET /api/auth/me
 router.get('/me', requireAuth, (req, res) => {
-  res.json({ user: publicUser(req.user) });
+  res.json({ user: req.user });
 });
 
 export default router;

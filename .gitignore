@@ -2,7 +2,5 @@ node_modules/
 dist/
 .env
 .DS_Store
-# Base PostgreSQL locale (PGlite), utilisée quand DATABASE_URL n'est pas défini
-server/data/pglite/
 # Ancienne base JSON (avant le passage à PostgreSQL)
 server/data/db.json

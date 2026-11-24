@@ -1,7 +1,7 @@
 import './env.js';
 import express from 'express';
 import cors from 'cors';
-import { initialiserDb } from './db.js';
+import { prisma } from './prisma.js';
 import authRoutes from './routes/auth.js';
 import hackathonRoutes from './routes/hackathons.js';
 import inscriptionRoutes from './routes/inscriptions.js';
@@ -34,12 +34,13 @@ app.use((err, req, res, next) => {
 });
 
 try {
-  const base = await initialiserDb();
+  // Vérifie la connexion à PostgreSQL avant d'ouvrir le serveur
+  await prisma.$connect();
   app.listen(PORT, () => {
-    console.log(`API HackFest prête sur http://localhost:${PORT}/api (base : ${base})`);
+    console.log(`API HackFest prête sur http://localhost:${PORT}/api`);
   });
 } catch (err) {
   console.error('Impossible de se connecter à la base de données :', err.message);
-  if (process.env.DATABASE_URL) console.error('Vérifie DATABASE_URL dans server/.env (mot de passe, adresse du "Session pooler").');
+  console.error('Vérifie DATABASE_URL dans server/.env, puis lance : npm run db:migrate');
   process.exit(1);
 }

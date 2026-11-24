@@ -1,25 +1,29 @@
 {
   "name": "hackfest-server",
   "version": "1.0.0",
-  "description": "API REST minimale de HackFest (Node.js + Express)",
+  "description": "API REST de HackFest (Node.js + Express + Prisma + PostgreSQL)",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
     "dev": "node --watch-path=src --watch-preserve-output src/index.js",
     "start": "node src/index.js",
-    "sync-seed": "node src/syncSeed.js",
-    "reset-db": "node src/resetDb.js"
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "reset-db": "node src/resetDb.js",
+    "postinstall": "prisma generate"
   },
   "engines": {
     "node": ">=18.18"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.2.17",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2",
-    "pg": "^8.13.1"
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
   }
 }

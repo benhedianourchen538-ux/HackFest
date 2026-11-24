@@ -1,7 +1,9 @@
--- Schéma PostgreSQL de HackFest (Supabase en ligne, PGlite en local).
--- Le script peut être relancé sans risque : "if not exists" partout.
+-- Migration de départ ("baseline") : la structure de la base avant Prisma (ancien db/schema.sql).
+-- Sur la base Supabase existante, elle est marquée comme appliquée sans être exécutée :
+--   npx prisma migrate resolve --applied 0_init
+-- Sur une base vide (nouveau poste, base de test), "prisma migrate deploy" l'exécute normalement.
 
-create table if not exists utilisateurs (
+create table utilisateurs (
   id                text primary key default gen_random_uuid()::text,
   nom               text not null,
   email             text not null unique,
@@ -10,7 +12,7 @@ create table if not exists utilisateurs (
   cree_le           timestamptz not null default now()
 );
 
-create table if not exists hackathons (
+create table hackathons (
   id                text primary key default gen_random_uuid()::text,
   titre             text not null,
   description       text not null,
@@ -22,20 +24,20 @@ create table if not exists hackathons (
   lieu              text not null,
   date_debut        date not null,
   date_fin          date not null,
-  date_limite       date,                  -- null : non communiquée
-  places            integer check (places > 0), -- null : non communiqué
-  taille_equipe_max integer check (taille_equipe_max > 0), -- null : non communiquée
+  date_limite       date,
+  places            integer check (places > 0),
+  taille_equipe_max integer check (taille_equipe_max > 0),
   prix              jsonb not null default '[]'::jsonb,
   programme         jsonb not null default '[]'::jsonb,
   reglement         text not null default '',
-  lien              text,                  -- page officielle de l'événement
-  source            text,                  -- d'où vient l'information (article, annonce…)
+  lien              text,
+  source            text,
   cree_par          text references utilisateurs(id) on delete set null,
   cree_le           timestamptz not null default now(),
   check (date_fin >= date_debut)
 );
 
-create table if not exists inscriptions (
+create table inscriptions (
   id             text primary key default gen_random_uuid()::text,
   utilisateur_id text not null references utilisateurs(id) on delete cascade,
   hackathon_id   text not null references hackathons(id) on delete cascade,
@@ -45,17 +47,13 @@ create table if not exists inscriptions (
   motivation     text not null default '',
   statut         text not null default 'confirme',
   cree_le        timestamptz not null default now(),
-  unique (hackathon_id, utilisateur_id)   -- pas de double inscription
+  unique (hackathon_id, utilisateur_id)
 );
 
--- Mise à jour des bases créées avec une version précédente de ce schéma
-alter table hackathons alter column taille_equipe_max drop not null;
-alter table hackathons alter column taille_equipe_max drop default;
+create index inscriptions_equipe_idx on inscriptions (hackathon_id, equipe_code);
+create index hackathons_cree_par_idx on hackathons (cree_par);
 
-create index if not exists inscriptions_equipe_idx on inscriptions (hackathon_id, equipe_code);
-create index if not exists hackathons_cree_par_idx on hackathons (cree_par);
-
-create table if not exists messages (
+create table messages (
   id      text primary key default gen_random_uuid()::text,
   nom     text not null,
   email   text not null,
@@ -63,10 +61,9 @@ create table if not exists messages (
   cree_le timestamptz not null default now()
 );
 
--- Sécurité Supabase : les tables du schéma "public" sont exposées par l'API REST de Supabase
--- (clé "anon"). On active RLS SANS politique : personne ne peut les lire par cette voie
--- (sinon les e-mails et les hash de mots de passe seraient publics).
--- Notre API Express se connecte en tant que propriétaire des tables : elle n'est pas bloquée.
+-- Sécurité Supabase : l'API REST publique de Supabase (clé "anon") expose les tables du schéma "public".
+-- RLS activé SANS politique = personne ne peut les lire par cette voie.
+-- Notre API Express se connecte en propriétaire des tables : elle n'est pas bloquée.
 alter table utilisateurs enable row level security;
 alter table hackathons   enable row level security;
 alter table inscriptions enable row level security;

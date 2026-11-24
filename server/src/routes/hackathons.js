@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { COLONNES_HACKATHON, insererHackathon, requete, versHackathon, versInscription } from '../db.js';
+import { prisma } from '../prisma.js';
+import { AVEC_INSCRITS, versDonneesHackathon, versHackathon, versInscription } from '../conversions.js';
 import { asyncRoute, requireAuth } from '../middleware/auth.js';
 import { enrich, filterHackathons, generateTeamCode } from '../utils/hackathons.js';
 import { DOMAINES, FORMATS, REGIONS, TYPES_ORGANISATEUR } from '../constants.js';
@@ -8,16 +9,16 @@ const router = Router();
 
 /** Un hackathon enrichi (statut, places restantes), ou null s'il n'existe pas */
 async function trouverHackathon(id) {
-  const [ligne] = await requete(`select ${COLONNES_HACKATHON} from hackathons h where h.id = $1`, [id]);
-  return ligne ? enrich(versHackathon(ligne)) : null;
+  const hackathon = await prisma.hackathon.findUnique({ where: { id }, include: AVEC_INSCRITS });
+  return hackathon ? enrich(versHackathon(hackathon)) : null;
 }
 
 // GET /api/hackathons?q=&organisateur=&region=&domaine=&statut=&format=&tri=
 router.get(
   '/',
   asyncRoute(async (req, res) => {
-    const lignes = await requete(`select ${COLONNES_HACKATHON} from hackathons h`);
-    const result = filterHackathons(lignes.map((l) => enrich(versHackathon(l))), req.query);
+    const hackathons = await prisma.hackathon.findMany({ include: AVEC_INSCRITS });
+    const result = filterHackathons(hackathons.map((h) => enrich(versHackathon(h))), req.query);
     res.json({ total: result.length, hackathons: result });
   }),
 );
@@ -28,8 +29,12 @@ router.get(
   '/mine',
   requireAuth,
   asyncRoute(async (req, res) => {
-    const lignes = await requete(`select ${COLONNES_HACKATHON} from hackathons h where h.cree_par = $1 order by h.cree_le desc`, [req.user.id]);
-    res.json({ hackathons: lignes.map((l) => enrich(versHackathon(l))) });
+    const hackathons = await prisma.hackathon.findMany({
+      where: { creePar: req.user.id },
+      orderBy: { creeLe: 'desc' },
+      include: AVEC_INSCRITS,
+    });
+    res.json({ hackathons: hackathons.map((h) => enrich(versHackathon(h))) });
   }),
 );
 
@@ -52,15 +57,14 @@ router.get(
     if (!hackathon) return res.status(404).json({ message: 'Hackathon introuvable.' });
     if (hackathon.createdBy !== req.user.id) return res.status(403).json({ message: 'Accès réservé à l’organisateur.' });
 
-    const lignes = await requete(
-      `select i.*, u.nom, u.email, u.universite
-       from inscriptions i join utilisateurs u on u.id = i.utilisateur_id
-       where i.hackathon_id = $1 order by i.cree_le`,
-      [hackathon.id],
-    );
-    const inscrits = lignes.map((l) => {
-      const i = versInscription(l);
-      return { id: i.id, nom: l.nom, email: l.email, universite: l.universite, mode: i.mode, equipe: i.equipe, createdAt: i.createdAt };
+    const inscriptions = await prisma.inscription.findMany({
+      where: { hackathonId: hackathon.id },
+      orderBy: { creeLe: 'asc' },
+      include: { equipe: true, utilisateur: { select: { nom: true, email: true, universite: true } } },
+    });
+    const inscrits = inscriptions.map((i) => {
+      const { id, mode, equipe, createdAt } = versInscription(i);
+      return { id, ...i.utilisateur, mode, equipe, createdAt };
     });
     return res.json({ inscrits });
   }),
@@ -102,40 +106,43 @@ router.post(
     if (Object.keys(errors).length) return res.status(400).json({ message: 'Formulaire invalide.', errors });
 
     const b = req.body;
-    const id = await insererHackathon(
-      {
-        titre: b.titre.trim(),
-        description: b.description.trim(),
-        organisateur: { nom: b.organisateur.nom.trim(), type: b.organisateur.type },
-        domaine: b.domaine,
-        region: b.region,
-        format: b.format,
-        lieu: b.lieu.trim(),
-        dateDebut: b.dateDebut,
-        dateFin: b.dateFin,
-        dateLimite: b.dateLimite,
-        places: Number(b.places),
-        tailleEquipeMax: Number(b.tailleEquipeMax) || 4,
-        prix: Array.isArray(b.prix) ? b.prix.filter(Boolean) : [],
-        programme: Array.isArray(b.programme) ? b.programme.filter((p) => p?.titre) : [],
-        reglement: (b.reglement || '').trim(),
+    const cree = await prisma.hackathon.create({
+      data: {
+        ...versDonneesHackathon({
+          titre: b.titre.trim(),
+          description: b.description.trim(),
+          organisateur: { nom: b.organisateur.nom.trim(), type: b.organisateur.type },
+          domaine: b.domaine,
+          region: b.region,
+          format: b.format,
+          lieu: b.lieu.trim(),
+          dateDebut: b.dateDebut,
+          dateFin: b.dateFin,
+          dateLimite: b.dateLimite,
+          places: Number(b.places),
+          tailleEquipeMax: Number(b.tailleEquipeMax) || 4,
+          prix: Array.isArray(b.prix) ? b.prix.filter(Boolean) : [],
+          programme: Array.isArray(b.programme) ? b.programme.filter((p) => p?.titre) : [],
+          reglement: (b.reglement || '').trim(),
+        }),
+        creePar: req.user.id,
       },
-      req.user.id,
-    );
-    return res.status(201).json({ hackathon: await trouverHackathon(id) });
+    });
+    return res.status(201).json({ hackathon: await trouverHackathon(cree.id) });
   }),
 );
 
-// DELETE /api/hackathons/:id : supprimer un hackathon que l'on a publié (ses inscriptions partent avec : "on delete cascade")
+// DELETE /api/hackathons/:id : supprimer un hackathon que l'on a publié
+// (ses inscriptions et équipes partent avec : "on delete cascade")
 router.delete(
   '/:id',
   requireAuth,
   asyncRoute(async (req, res) => {
-    const [ligne] = await requete('select cree_par from hackathons where id = $1', [req.params.id]);
-    if (!ligne) return res.status(404).json({ message: 'Hackathon introuvable.' });
-    if (ligne.cree_par !== req.user.id) return res.status(403).json({ message: 'Action non autorisée.' });
+    const hackathon = await prisma.hackathon.findUnique({ where: { id: req.params.id }, select: { creePar: true } });
+    if (!hackathon) return res.status(404).json({ message: 'Hackathon introuvable.' });
+    if (hackathon.creePar !== req.user.id) return res.status(403).json({ message: 'Action non autorisée.' });
 
-    await requete('delete from hackathons where id = $1', [req.params.id]);
+    await prisma.hackathon.delete({ where: { id: req.params.id } });
     return res.status(204).end();
   }),
 );
@@ -156,11 +163,14 @@ router.post(
     if (hackathon.placesRestantes !== null && hackathon.placesRestantes <= 0) {
       return res.status(400).json({ message: 'Plus de places disponibles.' });
     }
-    const deja = await requete('select 1 from inscriptions where hackathon_id = $1 and utilisateur_id = $2', [hackathon.id, req.user.id]);
-    if (deja.length) return res.status(409).json({ message: 'Tu es déjà inscrit(e) à ce hackathon.' });
+    const deja = await prisma.inscription.findUnique({
+      where: { hackathonId_utilisateurId: { hackathonId: hackathon.id, utilisateurId: req.user.id } },
+    });
+    if (deja) return res.status(409).json({ message: 'Tu es déjà inscrit(e) à ce hackathon.' });
 
     const { mode, nomEquipe, codeEquipe, motivation } = req.body || {};
-    let equipe = null;
+    let equipeExistante = null;
+    let nouvelleEquipe = null;
 
     if (mode === 'creer') {
       if (!nomEquipe || nomEquipe.trim().length < 2) {
@@ -168,33 +178,44 @@ router.post(
       }
       let code = generateTeamCode();
       // eslint-disable-next-line no-await-in-loop
-      while ((await requete('select 1 from inscriptions where equipe_code = $1', [code])).length) code = generateTeamCode();
-      equipe = { nom: nomEquipe.trim(), code };
+      while (await prisma.equipe.findUnique({ where: { code } })) code = generateTeamCode();
+      nouvelleEquipe = { nom: nomEquipe.trim(), code };
     } else if (mode === 'rejoindre') {
       const code = String(codeEquipe || '').trim().toUpperCase();
-      const membres = await requete('select equipe_nom from inscriptions where hackathon_id = $1 and equipe_code = $2', [hackathon.id, code]);
-      if (!membres.length) {
+      equipeExistante = await prisma.equipe.findFirst({
+        where: { code, hackathonId: hackathon.id },
+        include: { _count: { select: { membres: true } } },
+      });
+      if (!equipeExistante) {
         return res.status(400).json({ message: 'Code d’équipe introuvable pour ce hackathon.', errors: { codeEquipe: 'Code introuvable.' } });
       }
       // tailleEquipeMax null = non communiquée : pas de limite imposée
-      if (hackathon.tailleEquipeMax && membres.length >= hackathon.tailleEquipeMax) {
+      if (hackathon.tailleEquipeMax && equipeExistante._count.membres >= hackathon.tailleEquipeMax) {
         return res.status(400).json({ message: 'Cette équipe est complète.', errors: { codeEquipe: 'Équipe complète.' } });
       }
-      equipe = { nom: membres[0].equipe_nom, code };
     } else if (mode !== 'solo') {
       return res.status(400).json({ message: 'Mode de participation invalide.' });
     }
 
     try {
-      const [ligne] = await requete(
-        `insert into inscriptions (utilisateur_id, hackathon_id, mode, equipe_nom, equipe_code, motivation)
-         values ($1, $2, $3, $4, $5, $6) returning *`,
-        [req.user.id, hackathon.id, mode, equipe?.nom ?? null, equipe?.code ?? null, String(motivation || '').trim()],
-      );
-      return res.status(201).json({ inscription: versInscription(ligne) });
+      // Transaction : l'équipe et l'inscription sont créées ensemble, ou pas du tout
+      const inscription = await prisma.$transaction(async (tx) => {
+        const equipe = nouvelleEquipe ? await tx.equipe.create({ data: { ...nouvelleEquipe, hackathonId: hackathon.id } }) : equipeExistante;
+        return tx.inscription.create({
+          data: {
+            utilisateurId: req.user.id,
+            hackathonId: hackathon.id,
+            mode,
+            equipeId: equipe?.id ?? null,
+            motivation: String(motivation || '').trim(),
+          },
+          include: { equipe: true },
+        });
+      });
+      return res.status(201).json({ inscription: versInscription(inscription) });
     } catch (err) {
-      // 23505 = contrainte "unique" : deux clics très rapprochés
-      if (err.code === '23505') return res.status(409).json({ message: 'Tu es déjà inscrit(e) à ce hackathon.' });
+      // P2002 = contrainte "unique" : deux clics très rapprochés
+      if (err.code === 'P2002') return res.status(409).json({ message: 'Tu es déjà inscrit(e) à ce hackathon.' });
       throw err;
     }
   }),
