@@ -3,6 +3,9 @@
 
 export const TYPES_ORGANISATEUR = ['universite', 'club', 'organisation'];
 
+// Rôles qu'on peut choisir en créant son compte ("admin" ne se choisit pas : il est donné par le seed ou en base)
+export const ROLES_INSCRIPTION = ['participant', 'organisateur'];
+
 export const DOMAINES = [
   'tech-ia',
   'environnement',

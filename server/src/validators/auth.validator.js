@@ -1,4 +1,6 @@
 // Données attendues par les routes /api/auth. Chaque fonction renvoie { champ: message } (vide si tout est bon).
+import { ROLES_INSCRIPTION } from '../constants.js';
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function validerInscription(b = {}) {
@@ -6,6 +8,8 @@ export function validerInscription(b = {}) {
   if (!b.nom || String(b.nom).trim().length < 2) errors.nom = 'Indique ton nom complet.';
   if (!b.email || !EMAIL_RE.test(b.email)) errors.email = 'Adresse e-mail invalide.';
   if (!b.password || String(b.password).length < 8) errors.password = 'Au moins 8 caractères.';
+  // Facultatif (participant par défaut) ; "admin" est refusé
+  if (b.role !== undefined && !ROLES_INSCRIPTION.includes(b.role)) errors.role = 'Type de compte invalide.';
   return errors;
 }
 

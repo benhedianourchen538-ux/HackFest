@@ -27,10 +27,13 @@ export async function listerPublications(utilisateurId) {
   return hackathons.map((h) => enrich(versHackathon(h)));
 }
 
-/** Inscrits d'un hackathon : réservé à l'organisateur qui l'a publié */
+/** L'auteur d'un hackathon, ou un admin (modération) */
+const peutGerer = (creePar, utilisateur) => creePar === utilisateur.id || utilisateur.role === 'admin';
+
+/** Inscrits d'un hackathon : réservé à l'organisateur qui l'a publié (ou à un admin) */
 export async function listerInscrits(id, utilisateur) {
   const hackathon = await trouver(id);
-  if (hackathon.createdBy !== utilisateur.id) throw new ErreurApi(403, 'Accès réservé à l’organisateur.');
+  if (!peutGerer(hackathon.createdBy, utilisateur)) throw new ErreurApi(403, 'Accès réservé à l’organisateur.');
 
   const inscriptions = await prisma.inscription.findMany({
     where: { hackathonId: hackathon.id },
@@ -70,10 +73,10 @@ export async function publier(b, utilisateur) {
   return trouver(cree.id);
 }
 
-/** Supprime un hackathon que l'on a publié (inscriptions et équipes partent avec : "on delete cascade") */
+/** Supprime un hackathon que l'on a publié, ou n'importe lequel pour un admin (inscriptions et équipes partent avec) */
 export async function supprimer(id, utilisateur) {
   const hackathon = await prisma.hackathon.findUnique({ where: { id }, select: { creePar: true } });
   if (!hackathon) throw new ErreurApi(404, 'Hackathon introuvable.');
-  if (hackathon.creePar !== utilisateur.id) throw new ErreurApi(403, 'Action non autorisée.');
+  if (!peutGerer(hackathon.creePar, utilisateur)) throw new ErreurApi(403, 'Action non autorisée.');
   await prisma.hackathon.delete({ where: { id } });
 }
